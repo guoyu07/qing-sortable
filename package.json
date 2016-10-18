@@ -1,0 +1,27 @@
+{
+  "name": "qing-sortable",
+  "version": "0.0.1",
+  "description": "a component to sort items.",
+  "homepage": "http://mycolorway.github.io/qing-sortable",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mycolorway/qing-sortable.git"
+  },
+  "author": "farthinker <farthinker@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mycolorway/qing-sortable/issues"
+  },
+  "main": "dist/qing-sortable.js",
+  "scripts": {
+    "start": "gulp",
+    "test": "gulp test"
+  },
+  "dependencies": {
+    "jquery": "^3.1.0",
+    "qing-module": "~1.0.0"
+  },
+  "devDependencies": {
+    "qing-build": "^0.x"
+  }
+}
