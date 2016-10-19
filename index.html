@@ -13,13 +13,66 @@
 	<script type="text/javascript">
 		$(function() {
       var qingSortable = new QingSortable({
-        el: '.test-el'
+        sortable: '.droppable > li'
       });
 		});
 	</script>
 
+  <style>
+    *{margin:0; padding:0; box-sizing: border-box;}
+    ul,ol {list-style: none;}
+    .cover{background: red;}
+  </style>
+
 </head>
 <body>
-  <div class="test-el"></div>
+  <style>
+    .droppable {text-align: center; margin-top: 40px; display: flex;
+      flex-wrap: wrap; justify-content: center;}
+    .droppable>li{margin: 8px;width: 100px; height: 100px; border-radius: 50%;
+      line-height: 100px; border: 1px solid; background: #ccc;
+    }
+    .droppable>li.qing-sortable-active {
+      border-style: dashed;
+      background: red;
+      border-width: 10px;
+      line-height: 80px;
+    }
+    .qing-sortable-dragimage{
+      width: 100px;
+      height: 100px;
+      background: red;
+      border-radius: 50%;
+    }
+  </style>
+  <ul class=droppable>
+    <li><span>选项1</span></li>
+    <li><span>选项2</span></li>
+    <li><span>选项3</span></li>
+    <li><span>选项4</span></li>
+    <li><span>选项5</span></li>
+    <li><span>选项6</span></li>
+    <li><span>选项7</span></li>
+    <li><span>选项8</span></li>
+    <li><span>选项9</span></li>
+    <li><span>选项10</span></li>
+    <li><span>选项11</span></li>
+    <li><span>选项12</span></li>
+    <li><span>选项13</span></li>
+    <li><span>选项14</span></li>
+    <li><span>选项15</span></li>
+    <li><span>选项16</span></li>
+    <li><span>选项17</span></li>
+    <li><span>选项18</span></li>
+    <li><span>选项19</span></li>
+    <li><span>选项20</span></li>
+  </ul>
+  <ul class=droppable>
+    <li>选项1</li>
+    <li>选项2</li>
+    <li>选项3</li>
+    <li>选项4</li>
+    <li>选项5</li>
+  </ul>
 </body>
 </html>

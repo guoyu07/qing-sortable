@@ -6,7 +6,7 @@
  * Released under the MIT license
  * http://mycolorway.github.io/qing-sortable/license.html
  *
- * Date: 2016-10-18
+ * Date: 2016-10-19
  */
 ;(function(root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -25,27 +25,75 @@ QingSortable = (function(superClass) {
   extend(QingSortable, superClass);
 
   QingSortable.opts = {
-    el: null
+    sortable: null
   };
 
   function QingSortable(opts) {
     QingSortable.__super__.constructor.apply(this, arguments);
-    this.el = $(this.opts.el);
-    if (!(this.el.length > 0)) {
-      throw new Error('QingSortable: option el is required');
+    this.sortable = $(this.opts.sortable);
+    if (!(this.sortable.length > 0)) {
+      throw new Error('QingSortable: option sortable is required');
     }
     this.opts = $.extend({}, QingSortable.opts, this.opts);
     this._render();
-    this.trigger('ready');
+    this._bind();
   }
 
+  QingSortable.prototype.placeholder = null;
+
+  QingSortable.prototype.active = null;
+
   QingSortable.prototype._render = function() {
-    this.el.append("<p>This is a sample component.</p>");
-    return this.el.addClass(' qing-sortable').data('qingSortable', this);
+    return this.sortable.each((function(_this) {
+      return function(index, el) {
+        return el.draggable = true;
+      };
+    })(this));
+  };
+
+  QingSortable.prototype._bind = function() {
+    this.sortable.on('dragstart.qingSortable', (function(_this) {
+      return function(e) {
+        var $item, dragImage;
+        dragImage = $('<div/>').addClass('qing-sortable-dragimage');
+        dragImage.appendTo('body');
+        e.originalEvent.dataTransfer.setDragImage(dragImage[0], dragImage.width() / 2, dragImage.height() / 2);
+        $item = $(e.currentTarget).addClass('qing-sortable-active');
+        _this.active = $item;
+        return _this.placeholder = $item.clone();
+      };
+    })(this));
+    this.sortable.on('dragend.qingSortable', (function(_this) {
+      return function(e) {
+        var $item;
+        $item = $(e.currentTarget);
+        $item.removeClass('qing-sortable-active');
+        _this.active = null;
+        if (!$.contains(document, _this.placeholder[0])) {
+          return;
+        }
+        $(e.currentTarget).show().insertAfter(_this.placeholder);
+        return _this.placeholder.detach();
+      };
+    })(this));
+    return this.sortable.on('dragenter.qingSortable', (function(_this) {
+      return function(e) {
+        var $item, index, method;
+        $item = $(e.currentTarget);
+        if ($item[0] !== _this.active[0]) {
+          index = $.contains(document, _this.placeholder[0]) ? _this.placeholder.index() : _this.active.index();
+          method = index < $item.index() ? 'after' : 'before';
+          $item[method](_this.placeholder);
+          return _this.active.hide();
+        }
+      };
+    })(this));
   };
 
   QingSortable.prototype.destroy = function() {
-    return this.el.empty().removeData('qingSortable');
+    var ref;
+    this.sortable.off('.qingSortable');
+    return (ref = this.placeholder) != null ? ref.remove() : void 0;
   };
 
   return QingSortable;

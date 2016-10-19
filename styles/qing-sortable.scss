@@ -1,6 +1,14 @@
-
-.qing-sortable {
-  border: 1px solid #cccccc;
-  padding: 10px;
-  text-align: center;
+[draggable] {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+  /* Required to make elements draggable in old WebKit */
+  -khtml-user-drag: element;
+  -webkit-user-drag: element;
+}
+.dragimage{
+  position: absolute;
+  top: 0;
+  left: 200%;
 }
