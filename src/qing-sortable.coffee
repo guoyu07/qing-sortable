@@ -2,6 +2,7 @@ class QingSortable extends QingModule
 
   @opts:
     sortable: null
+    customDragImage: false
 
   constructor: (opts) ->
     super
@@ -17,27 +18,31 @@ class QingSortable extends QingModule
   placeholder: null
   active: null
   _render: ->
-    @sortable.each (index, el)=>
+    @sortable.each (index, el)->
       el.draggable = true
 
   _bind: ->
     @sortable.on 'dragstart.qingSortable', (e) =>
-      dragImage = $('<div/>').addClass('qing-sortable-dragimage')
-      dragImage.appendTo('body')
-      e.originalEvent.dataTransfer.setDragImage(
-        dragImage[0],dragImage.width()/2,dragImage.height()/2
-      )
+      console.log 'start'
       $item = $(e.currentTarget).addClass('qing-sortable-active')
+      if @opts.customDragImage
+        dragImage = $item.clone().addClass('qing-sortable-dragimage')
+        console.log dragImage[0].outerHTML
+        dragImage.appendTo('body')
+        e.originalEvent.dataTransfer.setDragImage(
+          dragImage[0],dragImage.width()/2,dragImage.height()/2
+        )
       @active = $item
-      @placeholder = $item.clone()
+      @placeholder = $item.clone().attr('data-sort-placeholder', true)
 
     @sortable.on 'dragend.qingSortable', (e) =>
+      console.log 'end'
       $item = $(e.currentTarget)
       $item.removeClass 'qing-sortable-active'
+      if $.contains document, @placeholder[0]
+        $(e.currentTarget).show().insertAfter(@placeholder)
+        @placeholder.detach()
       @active = null
-      return unless $.contains document, @placeholder[0]
-      $(e.currentTarget).show().insertAfter(@placeholder)
-      @placeholder.detach()
 
     @sortable.on 'dragenter.qingSortable', (e)=>
       $item = $ e.currentTarget

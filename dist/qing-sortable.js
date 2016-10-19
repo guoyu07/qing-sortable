@@ -25,7 +25,8 @@ QingSortable = (function(superClass) {
   extend(QingSortable, superClass);
 
   QingSortable.opts = {
-    sortable: null
+    sortable: null,
+    customDragImage: false
   };
 
   function QingSortable(opts) {
@@ -44,36 +45,38 @@ QingSortable = (function(superClass) {
   QingSortable.prototype.active = null;
 
   QingSortable.prototype._render = function() {
-    return this.sortable.each((function(_this) {
-      return function(index, el) {
-        return el.draggable = true;
-      };
-    })(this));
+    return this.sortable.each(function(index, el) {
+      return el.draggable = true;
+    });
   };
 
   QingSortable.prototype._bind = function() {
     this.sortable.on('dragstart.qingSortable', (function(_this) {
       return function(e) {
         var $item, dragImage;
-        dragImage = $('<div/>').addClass('qing-sortable-dragimage');
-        dragImage.appendTo('body');
-        e.originalEvent.dataTransfer.setDragImage(dragImage[0], dragImage.width() / 2, dragImage.height() / 2);
+        console.log('start');
         $item = $(e.currentTarget).addClass('qing-sortable-active');
+        if (_this.opts.customDragImage) {
+          dragImage = $item.clone().addClass('qing-sortable-dragimage');
+          console.log(dragImage[0].outerHTML);
+          dragImage.appendTo('body');
+          e.originalEvent.dataTransfer.setDragImage(dragImage[0], dragImage.width() / 2, dragImage.height() / 2);
+        }
         _this.active = $item;
-        return _this.placeholder = $item.clone();
+        return _this.placeholder = $item.clone().attr('data-sort-placeholder', true);
       };
     })(this));
     this.sortable.on('dragend.qingSortable', (function(_this) {
       return function(e) {
         var $item;
+        console.log('end');
         $item = $(e.currentTarget);
         $item.removeClass('qing-sortable-active');
-        _this.active = null;
-        if (!$.contains(document, _this.placeholder[0])) {
-          return;
+        if ($.contains(document, _this.placeholder[0])) {
+          $(e.currentTarget).show().insertAfter(_this.placeholder);
+          _this.placeholder.detach();
         }
-        $(e.currentTarget).show().insertAfter(_this.placeholder);
-        return _this.placeholder.detach();
+        return _this.active = null;
       };
     })(this));
     return this.sortable.on('dragenter.qingSortable', (function(_this) {

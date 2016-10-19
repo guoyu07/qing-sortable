@@ -17,7 +17,7 @@
   -khtml-user-drag: element;
   -webkit-user-drag: element; }
 
-.dragimage {
-  position: absolute;
+.qing-sortable-dragimage {
+  position: fixed;
   top: 0;
   left: 200%; }
