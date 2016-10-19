@@ -13,7 +13,7 @@
 	<script type="text/javascript">
 		$(function() {
       var qingSortable = new QingSortable({
-        sortable: '.droppable > li'
+        sortable: '.sort > li'
       });
 		});
 	</script>
@@ -27,16 +27,15 @@
 </head>
 <body>
   <style>
-    .droppable {text-align: center; margin-top: 40px; display: flex;
+    .sort {text-align: center; margin-top: 40px; display: flex;
       flex-wrap: wrap; justify-content: center;}
-    .droppable>li{margin: 8px;width: 100px; height: 100px; border-radius: 50%;
+    .sort>li{margin: 8px;width: 100px; height: 100px; border-radius: 50%;
       line-height: 100px; border: 1px solid; background: #ccc;
     }
-    .droppable>li.qing-sortable-active {
-      border-style: dashed;
+    .sort>li.qing-sortable-active {
       background: red;
-      border-width: 10px;
       line-height: 80px;
+      border: 10px dashed red;
     }
     .qing-sortable-dragimage{
       width: 100px;
@@ -45,29 +44,29 @@
       border-radius: 50%;
     }
   </style>
-  <ul class=droppable>
-    <li><span>选项1</span></li>
-    <li><span>选项2</span></li>
-    <li><span>选项3</span></li>
-    <li><span>选项4</span></li>
-    <li><span>选项5</span></li>
-    <li><span>选项6</span></li>
-    <li><span>选项7</span></li>
-    <li><span>选项8</span></li>
-    <li><span>选项9</span></li>
-    <li><span>选项10</span></li>
-    <li><span>选项11</span></li>
-    <li><span>选项12</span></li>
-    <li><span>选项13</span></li>
-    <li><span>选项14</span></li>
-    <li><span>选项15</span></li>
-    <li><span>选项16</span></li>
-    <li><span>选项17</span></li>
-    <li><span>选项18</span></li>
-    <li><span>选项19</span></li>
-    <li><span>选项20</span></li>
+  <ul class=sort>
+    <li style="background: #333;"><span>选项1</span></li>
+    <li style="background: #444;"><span>选项2</span></li>
+    <li style="background: #555;"><span>选项3</span></li>
+    <li style="background: #666;"><span>选项4</span></li>
+    <li style="background: #777;"><span>选项5</span></li>
+    <li style="background: #888;"><span>选项6</span></li>
+    <li style="background: #999;"><span>选项7</span></li>
+    <li style="background: #AAA;"><span>选项8</span></li>
+    <li style="background: #BBB;"><span>选项9</span></li>
+    <li style="background: #CCC;"><span>选项10</span></li>
+    <li style="background: #DDD;"><span>选项11</span></li>
+    <li style="background: #EEE;"><span>选项12</span></li>
+    <li style="background: #FFF;"><span>选项13</span></li>
+    <li style="background: #333;"><span>选项14</span></li>
+    <li style="background: #444;"><span>选项15</span></li>
+    <li style="background: #555;"><span>选项16</span></li>
+    <li style="background: #666;"><span>选项17</span></li>
+    <li style="background: #777;"><span>选项18</span></li>
+    <li style="background: #888;"><span>选项19</span></li>
+    <li style="background: #999;"><span>选项20</span></li>
   </ul>
-  <ul class=droppable>
+  <ul class=sort>
     <li>选项1</li>
     <li>选项2</li>
     <li>选项3</li>

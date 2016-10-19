@@ -14,16 +14,16 @@ describe 'QingSortable', ->
     $el = null
 
   beforeEach ->
-    #qingSortable = new QingSortable
-      #el: '.test-el'
+    qingSortable = new QingSortable
+      sortable: '.test-el'
 
   afterEach ->
     #qingSortable.destroy()
     #qingSortable = null
 
-  #it 'should inherit from QingModule', ->
-    #expect(qingSortable).to.be.instanceof QingModule
-    #expect(qingSortable).to.be.instanceof QingSortable
+  it 'should inherit from QingModule', ->
+    expect(qingSortable).to.be.instanceof QingModule
+    expect(qingSortable).to.be.instanceof QingSortable
 
   #it 'should throw error when element not found', ->
     #spy = sinon.spy QingSortable
