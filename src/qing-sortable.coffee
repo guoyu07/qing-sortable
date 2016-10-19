@@ -1,3 +1,6 @@
+active = null
+placeholder = null
+
 class QingSortable extends QingModule
 
   @opts:
@@ -15,48 +18,43 @@ class QingSortable extends QingModule
     @_render()
     @_bind()
 
-  placeholder: null
-  active: null
   _render: ->
     @sortable.each (index, el)->
       el.draggable = true
 
   _bind: ->
     @sortable.on 'dragstart.qingSortable', (e) =>
-      console.log 'start'
       $item = $(e.currentTarget).addClass('qing-sortable-active')
       if @opts.customDragImage
         dragImage = $item.clone().addClass('qing-sortable-dragimage')
-        console.log dragImage[0].outerHTML
         dragImage.appendTo('body')
         e.originalEvent.dataTransfer.setDragImage(
           dragImage[0],dragImage.width()/2,dragImage.height()/2
         )
-      @active = $item
-      @placeholder = $item.clone().attr('data-sort-placeholder', true)
+      active = $item
+      placeholder = $item.clone().attr('data-sort-placeholder', true)
 
     @sortable.on 'dragend.qingSortable', (e) =>
-      console.log 'end'
       $item = $(e.currentTarget)
       $item.removeClass 'qing-sortable-active'
-      if $.contains document, @placeholder[0]
-        $(e.currentTarget).show().insertAfter(@placeholder)
-        @placeholder.detach()
-      @active = null
+      if $.contains document, placeholder[0]
+        $(e.currentTarget).show().insertAfter(placeholder)
+        placeholder.detach()
+      active = null
 
     @sortable.on 'dragenter.qingSortable', (e)=>
       $item = $ e.currentTarget
-      unless $item[0] is @active[0]
-        index = if $.contains document, @placeholder[0]
-        then @placeholder.index()
-        else @active.index()
+      unless $item[0] is active[0]
+        index = if $.contains document, placeholder[0]
+        then placeholder.index()
+        else active.index()
         method = if index < $item.index()
         then 'after' else 'before'
-        $item[method] @placeholder
-        @active.hide()
+        $item[method] placeholder
+        active.hide()
 
   destroy: ->
     @sortable.off('.qingSortable')
-    @placeholder?.remove()
+    placeholder?.remove()
 
 module.exports = QingSortable
