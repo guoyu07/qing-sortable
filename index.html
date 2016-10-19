@@ -13,7 +13,8 @@
 	<script type="text/javascript">
 		$(function() {
       new QingSortable({
-        sortable: '.sort1 > li'
+        sortable: '.sort1 > li',
+        customDragImage: true
       });
       new QingSortable({
         sortable: '.sort2 > li',
@@ -33,22 +34,17 @@
   <style>
     .sort {text-align: center; margin-top: 40px; display: flex;
       flex-wrap: wrap; justify-content: center;}
-    .sort>li{margin: 8px;width: 100px; height: 100px; border-radius: 50%;
-      line-height: 100px; border: 1px solid; background: #ccc;
+    .sort>li, .qing-sortable-dragimage{margin: 8px;width: 100px; height: 100px; border-radius: 50%;
+      line-height: 100px; border: 1px solid; background: #ccc; list-style:none; text-align: center;
     }
     .sort>li.qing-sortable-active {
       background: red;
       line-height: 80px;
       border: 10px dashed red;
+      background: white !important;
     }
-    .qing-sortable-dragimage{
-      width: 100px;
-      height: 100px;
-      line-height: 100px;
-      background: red;
-      border-radius: 50%;
-      background: red !important;
-      list-style: none
+    .sort>li.qing-sortable-active span{
+      display: none;
     }
   </style>
   <ul class="sort sort1">
