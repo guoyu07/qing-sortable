@@ -13,12 +13,16 @@
 	<script type="text/javascript">
 		$(function() {
       new QingSortable({
+        container: '.sort1',
         sortable: '.sort1 > li',
-        customDragImage: true
+        customDragImage: true,
+        type: 'inline'
       });
       new QingSortable({
+        container: '.sort2',
         sortable: '.sort2 > li',
-        customDragImage: true
+        customDragImage: true,
+        type: 'inline'
       });
 		});
 	</script>
@@ -27,26 +31,35 @@
     *{margin:0; padding:0; box-sizing: border-box;}
     ul,ol {list-style: none;}
     .cover{background: red;}
+    body{padding: 100px;}
+    .yyy {outline: 1px solid red;}
   </style>
 
 </head>
 <body>
   <style>
-    .sort {text-align: center; margin-top: 40px; display: flex;
+    .sort {text-align: center; margin-top: 40px; display: flex; border: 1px solid red;
       flex-wrap: wrap; justify-content: center;}
-    .sort>li, .qing-sortable-dragimage{margin: 8px;width: 100px; height: 100px; border-radius: 50%;
-      line-height: 100px; border: 1px solid; background: #ccc; list-style:none; text-align: center;
+    .sort>li{margin: 8px;width: 60px; height: 60px;
+      line-height: 60px; border: 1px solid; background: #ccc; list-style:none; text-align: center;
     }
-    .sort>li.qing-sortable-active {
+    .sort>li.qing-sortable-placeholder {
       background: red;
-      line-height: 80px;
+      line-height: 40px;
       border: 10px dashed red;
       background: white !important;
     }
-    .sort>li.qing-sortable-active span{
+    .sort>li.qing-sortable-placeholder span{
       display: none;
     }
+    .qing-sortable-dragimage{
+    }
+    .xxx {
+      position: fixed;
+      left: 200%;
+    }
   </style>
+  <div style=""></div>
   <ul class="sort sort1">
     <li style="background: #333;"><span>选项1</span></li>
     <li style="background: #444;"><span>选项2</span></li>
