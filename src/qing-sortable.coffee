@@ -41,6 +41,7 @@ class QingSortable extends QingModule
       if @opts.customDragImage
         dragImage = $item.clone().addClass('qing-sortable-dragimage')
         dragImage.prependTo $item.parent()
+        e.originalEvent.dataTransfer.setData('Test', 'some data')
         e.originalEvent.dataTransfer.setDragImage(
           dragImage[0],
           e.pageX-$item.offset().left,

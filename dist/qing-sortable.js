@@ -80,6 +80,7 @@ QingSortable = (function(superClass) {
         if (_this.opts.customDragImage) {
           dragImage = $item.clone().addClass('qing-sortable-dragimage');
           dragImage.prependTo($item.parent());
+          e.originalEvent.dataTransfer.setData('Test', 'some data');
           e.originalEvent.dataTransfer.setDragImage(dragImage[0], e.pageX - $item.offset().left, e.pageY - $item.offset().top);
         }
         _this.relative = {

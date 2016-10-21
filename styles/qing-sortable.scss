@@ -6,9 +6,10 @@
   /* Required to make elements draggable in old WebKit */
   -khtml-user-drag: element;
   -webkit-user-drag: element;
+  cursor: move;
 }
 .qing-sortable-dragimage{
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 200%;
 }
