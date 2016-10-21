@@ -6,7 +6,7 @@
  * Released under the MIT license
  * http://mycolorway.github.io/qing-sortable/license.html
  *
- * Date: 2016-10-20
+ * Date: 2016-10-21
  */
 [draggable] {
   -moz-user-select: none;
@@ -20,5 +20,10 @@
 
 .qing-sortable-dragimage {
   position: absolute;
+  top: 0;
+  left: 200%; }
+
+.qing-sortable-hide {
+  position: fixed;
   top: 0;
   left: 200%; }

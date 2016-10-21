@@ -15,7 +15,8 @@ describe 'QingSortable', ->
 
   beforeEach ->
     qingSortable = new QingSortable
-      sortable: '.test-el'
+      items: '.test-el'
+      container: '.test-el'
 
   afterEach ->
     #qingSortable.destroy()

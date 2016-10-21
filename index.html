@@ -14,15 +14,18 @@
 		$(function() {
       new QingSortable({
         container: '.sort1',
-        sortable: '.sort1 > li',
-        customDragImage: true,
-        type: 'inline'
+        items: '.sort1 > li',
+        axis: 'x'
       });
       new QingSortable({
         container: '.sort2',
-        sortable: '.sort2 > li',
-        customDragImage: true,
-        type: 'inline'
+        items: '.sort2 > li',
+        axis: 'x'
+      });
+      new QingSortable({
+        container: '.verticle',
+        items: '.verticle > li',
+        axis: 'y'
       });
 		});
 	</script>
@@ -54,9 +57,12 @@
     }
     .qing-sortable-dragimage{
     }
-    .xxx {
-      position: fixed;
-      left: 200%;
+    .verticle > li{
+      border: 1px solid red;
+    }
+    .verticle .qing-sortable-placeholder{
+      background: yellow;
+        text-indent: -100000px;
     }
   </style>
   <div style=""></div>
@@ -83,6 +89,13 @@
     <li style="background: #999;"><span>选项20</span></li>
   </ul>
   <ul class="sort sort2">
+    <li>选项1</li>
+    <li>选项2</li>
+    <li>选项3</li>
+    <li>选项4</li>
+    <li>选项5</li>
+  </ul>
+  <ul class="verticle">
     <li>选项1</li>
     <li>选项2</li>
     <li>选项3</li>
