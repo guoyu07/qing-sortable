@@ -64,7 +64,10 @@ QingSortable = (function(superClass) {
   };
 
   QingSortable.prototype._setDragImage = function(e) {
-    var $item;
+    var $item, ref;
+    if ((ref = this.dragImage) != null) {
+      ref.remove();
+    }
     $item = $(e.currentTarget);
     this.dragImage = $item.clone().addClass('qing-sortable-dragimage');
     this.dragImage.css({

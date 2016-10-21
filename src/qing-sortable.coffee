@@ -28,6 +28,7 @@ class QingSortable extends QingModule
     @items.each (index, el)->
       el.draggable = true
   _setDragImage: (e)->
+    @dragImage?.remove()
     $item = $(e.currentTarget)
     @dragImage = $item.clone().addClass('qing-sortable-dragimage')
     @dragImage.css
