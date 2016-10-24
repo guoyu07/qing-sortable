@@ -1,6 +1,7 @@
 $active = null
 $placeholder = null
 allItems = $ []
+theContainer = null
 
 class QingSortable extends QingModule
 
@@ -15,6 +16,7 @@ class QingSortable extends QingModule
     @container = $(@opts.container)
     @_checkOptions()
     @items.data('qingSortable', @)
+    @container.data('qingSortableItems',@items)
     allItems = allItems.add @items
     @opts = $.extend {}, QingSortable.opts, @opts
     @_render()
@@ -78,9 +80,12 @@ class QingSortable extends QingModule
 
     @container.on 'dragenter.qingSortable', (e)=>
       @inContainer = true
+      theContainer = @container
+
     @container.on 'dragleave.qingSortable', (e)=>
       if e.target is e.currentTarget
         @inContainer = false
+        theContainer = null
 
     $(document).on 'dragover.qingSortable', (e)=>
       return unless @_shouldCalculatePosition(e)
@@ -89,7 +94,8 @@ class QingSortable extends QingModule
       center =
         x: e.pageX - @mousePosition.x + $active.outerWidth() / 2
         y: e.pageY - @mousePosition.y + $active.outerHeight() / 2
-      scope = if @inContainer then @items else allItems
+      scope = if theContainer then theContainer.data('qingSortableItems')
+      else allItems
       sorted = @_getSortedCenters scope, center
       nearest = sorted[0].element
       if center[@opts.axis] < sorted[0].center[@opts.axis]
