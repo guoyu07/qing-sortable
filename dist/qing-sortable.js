@@ -138,6 +138,7 @@ QingSortable = (function(superClass) {
         return _this._onEnd();
       };
     })(this));
+    this.items.on('dragover.qingSortable', false);
     this.container.on('dragenter.qingSortable', (function(_this) {
       return function(e) {
         _this.inContainer = true;
@@ -155,6 +156,7 @@ QingSortable = (function(superClass) {
     $(document).on('dragover.qingSortable', (function(_this) {
       return function(e) {
         var center, nearest, scope, sorted;
+        e.preventDefault();
         if (!_this._shouldCalculatePosition(e)) {
           return;
         }

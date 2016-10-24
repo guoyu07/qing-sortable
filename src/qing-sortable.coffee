@@ -76,6 +76,7 @@ class QingSortable extends QingModule
         $item.insertAfter($placeholder)
         $placeholder.detach()
       @_onEnd()
+    @items.on 'dragover.qingSortable', false
 
 
     @container.on 'dragenter.qingSortable', (e)=>
@@ -88,6 +89,7 @@ class QingSortable extends QingModule
         theContainer = null
 
     $(document).on 'dragover.qingSortable', (e)=>
+      e.preventDefault()
       return unless @_shouldCalculatePosition(e)
 
       $placeholder.detach()
