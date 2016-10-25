@@ -138,21 +138,21 @@ QingSortable = (function(superClass) {
     };
   };
 
-  QingSortable.prototype._findNearestContainer = function(dd) {
-    var d, f1, list;
-    d = function(x, y) {
+  QingSortable.prototype._findNearestContainer = function(itemDimension) {
+    var compare, distance, list;
+    distance = function(x, y) {
       return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
     };
-    f1 = function(d1, d2) {
+    compare = function(d1, d2) {
       if (d2.left > d1.right) {
         if (d2.bottom < d1.top) {
           return {
-            delta: d(d2.left - d1.right, d1.top - d2.bottom),
+            delta: distance(d2.left - d1.right, d1.top - d2.bottom),
             position: 9
           };
         } else if (d2.top > d1.bottom) {
           return {
-            delta: d(d2.left - d1.right, d2.top - d1.bottom),
+            delta: distance(d2.left - d1.right, d2.top - d1.bottom),
             position: 3
           };
         } else {
@@ -164,12 +164,12 @@ QingSortable = (function(superClass) {
       } else if (d2.right < d1.left) {
         if (d2.bottom < d1.top) {
           return {
-            delta: d(d1.left - d2.right, d1.top - d2.bottom),
+            delta: distance(d1.left - d2.right, d1.top - d2.bottom),
             position: 7
           };
         } else if (d2.top > d1.bottom) {
           return {
-            delta: d(d1.left - d2.right, d2.top - d1.bottom),
+            delta: distance(d1.left - d2.right, d2.top - d1.bottom),
             position: 5
           };
         } else {
@@ -197,11 +197,11 @@ QingSortable = (function(superClass) {
     };
     list = $.map(this.containerDimensions, (function(_this) {
       return function(d, index) {
-        var t1;
-        t1 = f1(d, dd);
+        var diff;
+        diff = compare(d, itemDimension);
         return {
-          delta: t1.delta,
-          position: t1.position,
+          delta: diff.delta,
+          position: diff.position,
           dimension: d,
           element: d.element
         };
@@ -213,14 +213,14 @@ QingSortable = (function(superClass) {
   };
 
   QingSortable.prototype._getItemDimension = function(e) {
-    var r;
-    r = {
+    var dimension;
+    dimension = {
       left: e.pageX - this.mousePosition.x,
       top: e.pageY - this.mousePosition.y
     };
-    r.right = r.left + $ACTIVE.outerWidth();
-    r.bottom = r.top + $ACTIVE.outerHeight();
-    return r;
+    dimension.right = dimension.left + $ACTIVE.outerWidth();
+    dimension.bottom = dimension.top + $ACTIVE.outerHeight();
+    return dimension;
   };
 
   QingSortable.prototype._findNearestItem = function(itemDimension, container) {
@@ -323,37 +323,9 @@ QingSortable = (function(superClass) {
     })(this));
   };
 
-  QingSortable.prototype._getSortedCenters = function(items, center) {
-    var all;
-    all = items.map(function(index, el) {
-      var $el, c, delta, offset;
-      $el = $(el);
-      offset = $el.offset();
-      c = {
-        x: offset.left + $el.outerWidth() / 2,
-        y: offset.top + $el.outerHeight() / 2
-      };
-      delta = Math.sqrt(Math.pow(center.x - c.x, 2) + Math.pow(center.y - c.y, 2));
-      return {
-        delta: delta,
-        element: el,
-        center: c
-      };
-    });
-    return all.sort(function(a, b) {
-      return a.delta - b.delta;
-    });
-  };
-
   QingSortable.prototype.destroy = function() {
-    var ref;
     allItems = allItems.not(this.items);
-    allContainers = allContainers.not(this.contains);
-    this.items.off('.qingSortable');
-    if (typeof $placeholder !== "undefined" && $placeholder !== null) {
-      $placeholder.remove();
-    }
-    return (ref = this.dragImage) != null ? ref.remove() : void 0;
+    return allContainers = allContainers.not(this.contains);
   };
 
   return QingSortable;

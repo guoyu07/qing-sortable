@@ -75,36 +75,36 @@ class QingSortable extends QingModule
     right: offset.left + $(element).outerWidth()
     element: element
 
-  _findNearestContainer: (dd)->
-    #7     8     9
-    #
-    #    +---+
-    #    |   |
-    #6   | 1 |   2
-    #    |   |
-    #    +---+
-    #
-    #5     4     3
-    d = (x,y)->
+  _findNearestContainer: (itemDimension)->
+    distance = (x,y)->
       Math.sqrt(Math.pow(x,2)+Math.pow(y,2))
 
-    f1 = (d1, d2)->
+    compare = (d1, d2)->
+      #7     8     9
+      #
+      #    +---+
+      #    |   |
+      #6   | 1 |   2
+      #    |   |
+      #    +---+
+      #
+      #5     4     3
       if d2.left > d1.right # 9 2 3
         if d2.bottom < d1.top # 9
-          delta: d d2.left-d1.right, d1.top - d2.bottom
+          delta: distance d2.left-d1.right, d1.top - d2.bottom
           position: 9
         else if d2.top > d1.bottom # 3
-          delta: d d2.left-d1.right, d2.top-d1.bottom
+          delta: distance d2.left-d1.right, d2.top-d1.bottom
           position: 3
         else #2
           delta: d2.left - d1.right
           position: 2
       else if d2.right < d1.left # 5 6 7
         if d2.bottom < d1.top # 7
-          delta: d d1.left-d2.right, d1.top - d2.bottom
+          delta: distance d1.left-d2.right, d1.top - d2.bottom
           position: 7
         else if d2.top > d1.bottom # 5
-          delta: d d1.left-d2.right, d2.top - d1.bottom
+          delta: distance d1.left-d2.right, d2.top - d1.bottom
           position: 5
         else #6
           delta: d1.left - d2.right
@@ -120,21 +120,21 @@ class QingSortable extends QingModule
         position: 1
 
     list = $.map(@containerDimensions, (d, index)=>
-      t1 = f1(d, dd)
-      delta: t1.delta
-      position: t1.position
+      diff = compare(d, itemDimension)
+      delta: diff.delta
+      position: diff.position
       dimension: d
       element: d.element
     ).sort((a,b)-> a.delta - b.delta)
     list[0].element
 
   _getItemDimension: (e)->
-    r =
+    dimension =
       left: e.pageX - @mousePosition.x
       top: e.pageY - @mousePosition.y
-    r.right = r.left + $ACTIVE.outerWidth()
-    r.bottom = r.top + $ACTIVE.outerHeight()
-    r
+    dimension.right = dimension.left + $ACTIVE.outerWidth()
+    dimension.bottom = dimension.top + $ACTIVE.outerHeight()
+    dimension
   _findNearestItem: (itemDimension, container)->
     items = $(container).find(@opts.items).not($PLACEHOLDER)
     center =
@@ -201,25 +201,8 @@ class QingSortable extends QingModule
         $PLACEHOLDER.replaceWith $ACTIVE
         $PLACEHOLDER = null
       ACTIVE = null
-  _getSortedCenters: (items, center)->
-    all =  items.map (index, el)->
-      $el = $(el)
-      offset = $el.offset()
-      c =
-        x: offset.left + $el.outerWidth()/2
-        y: offset.top + $el.outerHeight()/2
-      delta = Math.sqrt(Math.pow((center.x - c.x),2) +
-        Math.pow((center.y - c.y),2))
-      delta: delta
-      element: el
-      center: c
-    all.sort (a,b)->
-      a.delta - b.delta
   destroy: ->
     allItems = allItems.not @items
     allContainers = allContainers.not @contains
-    @items.off('.qingSortable')
-    $placeholder?.remove()
-    @dragImage?.remove()
 
 module.exports = QingSortable
