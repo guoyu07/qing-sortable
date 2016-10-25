@@ -6,7 +6,7 @@
  * Released under the MIT license
  * http://mycolorway.github.io/qing-sortable/license.html
  *
- * Date: 2016-10-24
+ * Date: 2016-10-25
  */
 ;(function(root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -17,15 +17,17 @@
 }(this, function ($,QingModule) {
 var define, module, exports;
 var b = require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"qing-sortable":[function(require,module,exports){
-var $active, $placeholder, QingSortable, allItems, theContainer,
+var $ACTIVE, $PLACEHOLDER, QingSortable, allContainers, allItems, theContainer,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
-$active = null;
+$ACTIVE = null;
 
-$placeholder = null;
+$PLACEHOLDER = null;
 
 allItems = $([]);
+
+allContainers = $([]);
 
 theContainer = null;
 
@@ -33,26 +35,25 @@ QingSortable = (function(superClass) {
   extend(QingSortable, superClass);
 
   QingSortable.opts = {
+    scope: document,
     container: null,
-    items: null,
+    items: '[draggable=true]',
     axis: 'x'
   };
 
   function QingSortable(opts) {
     QingSortable.__super__.constructor.apply(this, arguments);
-    this.items = $(this.opts.items);
-    this.container = $(this.opts.container);
-    this._checkOptions();
-    this.items.data('qingSortable', this);
-    this.container.data('qingSortableItems', this.items);
-    allItems = allItems.add(this.items);
     this.opts = $.extend({}, QingSortable.opts, this.opts);
-    this._render();
+    this.container = $(this.opts.container);
+    this.items = this.container.find(this.opts.items);
+    this._checkOptions();
+    allContainers = allContainers.add(this.container);
+    allItems = allItems.add(this.items);
     this._bind();
   }
 
   QingSortable.prototype._checkOptions = function() {
-    if (!(this.items.length > 0)) {
+    if (!(this.opts.items.length > 0)) {
       throw new Error('QingSortable: option items is required');
     }
     if (!(this.container.length > 0)) {
@@ -60,16 +61,10 @@ QingSortable = (function(superClass) {
     }
   };
 
-  QingSortable.prototype._render = function() {
-    return this.items.each(function(index, el) {
-      return el.draggable = true;
-    });
-  };
-
   QingSortable.prototype._setDragImage = function(e) {
     var $item, ref;
     if ((ref = this.dragImage) != null) {
-      ref.remove();
+      ref.hide().remove();
     }
     $item = $(e.currentTarget);
     this.dragImage = $item.clone().addClass('qing-sortable-dragimage');
@@ -81,23 +76,13 @@ QingSortable = (function(superClass) {
     return e.originalEvent.dataTransfer.setDragImage(this.dragImage[0], e.pageX - $item.offset().left, e.pageY - $item.offset().top);
   };
 
-  QingSortable.prototype._getMousePosition = function(e) {
+  QingSortable.prototype._cacheMousePosition = function(e) {
     var $item;
     $item = $(e.currentTarget);
-    return {
+    return this.mousePosition = {
       x: e.pageX - $item.offset().left,
       y: e.pageY - $item.offset().top
     };
-  };
-
-  QingSortable.prototype._onStart = function($item) {
-    this.dragging = true;
-    return $active = $item;
-  };
-
-  QingSortable.prototype._onEnd = function() {
-    this.dragging = false;
-    return $active = null;
   };
 
   QingSortable.prototype._shouldCalculatePosition = function(e) {
@@ -116,80 +101,224 @@ QingSortable = (function(superClass) {
     return true;
   };
 
-  QingSortable.prototype._bind = function() {
-    this.items.on('dragstart.qingSortable', (function(_this) {
-      return function(e) {
-        var $item;
-        _this._setDragImage(e);
-        _this.mousePosition = _this._getMousePosition(e);
-        $item = $(e.currentTarget).addClass('qing-sortable-placeholder');
-        $placeholder = $item.clone().attr('qing-sortable-placeholder', true);
-        return _this._onStart($item);
+  QingSortable.prototype._cacheContainerDimensions = function() {
+    return this.containerDimensions = allContainers.map((function(_this) {
+      return function(index, container) {
+        return _this._getDimension(container);
       };
-    })(this));
-    this.items.on('dragend.qingSortable', (function(_this) {
-      return function(e) {
-        var $item;
-        $item = $(e.currentTarget).removeClass('qing-sortable-placeholder qing-sortable-hide');
-        if ($.contains(document, $placeholder[0])) {
-          $item.insertAfter($placeholder);
-          $placeholder.detach();
+    })(this)).get();
+  };
+
+  QingSortable.prototype._cacheItemPositions = function() {
+    return this.itemCenters = allItems.map(function(index, item) {
+      var $el, offset;
+      $el = $(item);
+      offset = $el.offset();
+      return {
+        element: item,
+        x: offset.left + $el.outerWidth() / 2,
+        y: offset.top + $el.outerHeight() / 2
+      };
+    }).get();
+  };
+
+  QingSortable.prototype._hideActiveItem = function($item) {
+    return $item.addClass('qing-sortable-hide');
+  };
+
+  QingSortable.prototype._getDimension = function(element) {
+    var offset;
+    offset = $(element).offset();
+    return {
+      top: offset.top,
+      left: offset.left,
+      bottom: offset.top + $(element).outerHeight(),
+      right: offset.left + $(element).outerWidth(),
+      element: element
+    };
+  };
+
+  QingSortable.prototype._findNearestContainer = function(dd) {
+    var d, f1, list;
+    d = function(x, y) {
+      return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+    };
+    f1 = function(d1, d2) {
+      if (d2.left > d1.right) {
+        if (d2.bottom < d1.top) {
+          return {
+            delta: d(d2.left - d1.right, d1.top - d2.bottom),
+            position: 9
+          };
+        } else if (d2.top > d1.bottom) {
+          return {
+            delta: d(d2.left - d1.right, d2.top - d1.bottom),
+            position: 3
+          };
+        } else {
+          return {
+            delta: d2.left - d1.right,
+            position: 2
+          };
         }
-        return _this._onEnd();
-      };
-    })(this));
-    this.items.on('dragover.qingSortable', false);
-    this.container.on('dragenter.qingSortable', (function(_this) {
-      return function(e) {
-        _this.inContainer = true;
-        return theContainer = _this.container;
-      };
-    })(this));
-    this.container.on('dragleave.qingSortable', (function(_this) {
-      return function(e) {
-        if (e.target === e.currentTarget) {
-          _this.inContainer = false;
-          return theContainer = null;
+      } else if (d2.right < d1.left) {
+        if (d2.bottom < d1.top) {
+          return {
+            delta: d(d1.left - d2.right, d1.top - d2.bottom),
+            position: 7
+          };
+        } else if (d2.top > d1.bottom) {
+          return {
+            delta: d(d1.left - d2.right, d2.top - d1.bottom),
+            position: 5
+          };
+        } else {
+          return {
+            delta: d1.left - d2.right,
+            position: 6
+          };
         }
-      };
-    })(this));
-    $(document).on('dragover.qingSortable', (function(_this) {
-      return function(e) {
-        var center, nearest, scope, sorted;
-        e.preventDefault();
-        if (!_this._shouldCalculatePosition(e)) {
-          return;
-        }
-        $placeholder.detach();
-        center = {
-          x: e.pageX - _this.mousePosition.x + $active.outerWidth() / 2,
-          y: e.pageY - _this.mousePosition.y + $active.outerHeight() / 2
+      } else if (d2.bottom < d1.top) {
+        return {
+          delta: d1.top - d2.bottom,
+          position: 8
         };
-        scope = theContainer ? theContainer.data('qingSortableItems') : allItems;
-        sorted = _this._getSortedCenters(scope, center);
-        nearest = sorted[0].element;
-        if (center[_this.opts.axis] < sorted[0].center[_this.opts.axis]) {
-          $(nearest).before($placeholder);
-        } else {
-          $(nearest).after($placeholder);
-        }
-        return $active.addClass('qing-sortable-hide');
+      } else if (d2.top > d1.bottom) {
+        return {
+          delta: d2.top - d1.bottom,
+          position: 4
+        };
+      } else {
+        return {
+          delta: 0,
+          position: 1
+        };
+      }
+    };
+    list = $.map(this.containerDimensions, (function(_this) {
+      return function(d, index) {
+        var t1;
+        t1 = f1(d, dd);
+        return {
+          delta: t1.delta,
+          position: t1.position,
+          dimension: d,
+          element: d.element
+        };
       };
-    })(this));
-    return this.items.on('dragenter.qingSortable', (function(_this) {
+    })(this)).sort(function(a, b) {
+      return a.delta - b.delta;
+    });
+    return list[0].element;
+  };
+
+  QingSortable.prototype._getItemDimension = function(e) {
+    var r;
+    r = {
+      left: e.pageX - this.mousePosition.x,
+      top: e.pageY - this.mousePosition.y
+    };
+    r.right = r.left + $ACTIVE.outerWidth();
+    r.bottom = r.top + $ACTIVE.outerHeight();
+    return r;
+  };
+
+  QingSortable.prototype._findNearestItem = function(itemDimension, container) {
+    var all, center, items;
+    items = $(container).find(this.opts.items).not($PLACEHOLDER);
+    center = {
+      x: (itemDimension.left + itemDimension.right) / 2,
+      y: (itemDimension.top + itemDimension.bottom) / 2
+    };
+    all = items.map(function(index, el) {
+      var $el, c, delta, offset, result;
+      $el = $(el);
+      offset = $el.offset();
+      c = {
+        x: offset.left + $el.outerWidth() / 2,
+        y: offset.top + $el.outerHeight() / 2
+      };
+      delta = Math.sqrt(Math.pow(center.x - c.x, 2) + Math.pow(center.y - c.y, 2));
+      result = {
+        delta: delta,
+        element: el,
+        center: c
+      };
+      result.xDelta = c.x - center.x;
+      result.yDelta = c.y - center.y;
+      return result;
+    }).sort(function(a, b) {
+      return a.delta - b.delta;
+    });
+    return all[0];
+  };
+
+  QingSortable.prototype._bind = function() {
+    var $scope;
+    $scope = $(this.opts.scope);
+    $scope.on('dragstart.qingSortable', this.opts.items, (function(_this) {
       return function(e) {
-        var $item, index;
-        if (!_this.inContainer) {
+        var $item;
+        $item = $(e.target);
+        if (!$.contains(_this.container[0], e.target)) {
           return;
         }
-        $item = $(e.currentTarget);
-        index = $.contains(document, $placeholder[0]) ? $placeholder.index() : $active.index();
-        if (index < $item.index()) {
-          $item.after($placeholder);
-        } else {
-          $item.before($placeholder);
+        _this.isDragging = true;
+        _this._cacheContainerDimensions();
+        _this._cacheItemPositions();
+        _this._cacheMousePosition(e);
+        _this._setDragImage(e);
+        $item.addClass('qing-sortable-placeholder');
+        $ACTIVE = $item;
+        return $PLACEHOLDER = $item.clone().attr({
+          dataPlaceholder: true
+        });
+      };
+    })(this));
+    $scope.on('dragleave.qingSortable', this.opts.items, (function(_this) {
+      return function(e) {
+        if (!_this.isDragging) {
+          return;
         }
-        return $active.addClass('qing-sortable-hide');
+        if (e.currentTarget === $ACTIVE[0]) {
+          return $ACTIVE.removeClass('qing-sortable-placeholder').addClass('qing-sortable-hide');
+        }
+      };
+    })(this));
+    $scope.on('dragover.qingSortable', (function(_this) {
+      return function(e) {
+        var itemDimension, method, nearItem, nearestContainer;
+        e.preventDefault();
+        if (!_this.isDragging) {
+          return;
+        }
+        if ((e.target === $ACTIVE[0]) || ($.contains($ACTIVE[0], e.target))) {
+          return;
+        }
+        itemDimension = _this._getItemDimension(e);
+        nearestContainer = _this._findNearestContainer(itemDimension);
+        nearItem = _this._findNearestItem(itemDimension, nearestContainer);
+        method;
+        if (_this.opts.axis === 'x') {
+          method = nearItem.xDelta > 0 ? 'before' : 'after';
+        } else {
+          method = nearItem.yDelta > 0 ? 'before' : 'after';
+        }
+        return $(nearItem.element)[method]($PLACEHOLDER);
+      };
+    })(this));
+    return $scope.on('dragend.qingSortable', this.opts.items, (function(_this) {
+      return function(e) {
+        var ACTIVE;
+        if (!_this.isDragging) {
+          return;
+        }
+        $ACTIVE.removeClass('qing-sortable-placeholder qing-sortable-hide');
+        if ($PLACEHOLDER && $.contains(document, $PLACEHOLDER[0])) {
+          $PLACEHOLDER.replaceWith($ACTIVE);
+          $PLACEHOLDER = null;
+        }
+        return ACTIVE = null;
       };
     })(this));
   };
@@ -219,8 +348,9 @@ QingSortable = (function(superClass) {
   QingSortable.prototype.destroy = function() {
     var ref;
     allItems = allItems.not(this.items);
+    allContainers = allContainers.not(this.contains);
     this.items.off('.qingSortable');
-    if ($placeholder != null) {
+    if (typeof $placeholder !== "undefined" && $placeholder !== null) {
       $placeholder.remove();
     }
     return (ref = this.dragImage) != null ? ref.remove() : void 0;

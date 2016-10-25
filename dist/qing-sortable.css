@@ -20,8 +20,9 @@
 
 .qing-sortable-dragimage {
   position: absolute;
-  top: 0;
-  left: 200%; }
+  top: -200%;
+  left: -200%;
+  background: red !important; }
 
 .qing-sortable-hide {
   position: fixed;
