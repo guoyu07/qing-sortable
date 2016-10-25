@@ -4,6 +4,43 @@ allItems = $ []
 allContainers = $ []
 theContainer = null
 cid = 1
+length = (x,y)->
+  Math.sqrt(Math.pow(x,2)+Math.pow(y,2))
+compareDimensions = (d1, d2)->
+  # 7   8   9
+  #   +---+
+  # 6 |d1 | 2
+  #   +---+
+  # 5   4   3
+  if d2.left > d1.right # 9 2 3
+    if d2.bottom < d1.top # 9
+      delta: length d2.left-d1.right, d1.top - d2.bottom
+      position: 9
+    else if d2.top > d1.bottom # 3
+      delta: length d2.left-d1.right, d2.top-d1.bottom
+      position: 3
+    else #2
+      delta: d2.left - d1.right
+      position: 2
+  else if d2.right < d1.left # 5 6 7
+    if d2.bottom < d1.top # 7
+      delta: length d1.left-d2.right, d1.top - d2.bottom
+      position: 7
+    else if d2.top > d1.bottom # 5
+      delta: length d1.left-d2.right, d2.top - d1.bottom
+      position: 5
+    else #6
+      delta: d1.left - d2.right
+      position: 6
+  else if d2.bottom < d1.top #8
+    delta: d1.top - d2.bottom
+    position: 8
+  else if d2.top > d1.bottom #4
+    delta: d2.top - d1.bottom
+    position: 4
+  else # 部分重合
+    delta: 0
+    position: 1
 
 class QingSortable extends QingModule
 
@@ -46,17 +83,10 @@ class QingSortable extends QingModule
     @mousePosition =
       x: e.pageX-$item.offset().left
       y: e.pageY-$item.offset().top
-  _shouldCalculatePosition: (e)->
-    return false unless @dragging
-    return false if $(e.target).data('qingSortable')
-    return false if e.target is $placeholder[0]
-    return false if e.target is $active[0]
-    true
   _cacheContainerDimensions: ()->
     @containerDimensions = allContainers.map((index, container)=>
-      @_getDimension container
+      @_getElementDimension container
     ).get()
-
   _cacheItemPositions: ()->
     @itemCenters = allItems.map((index, item)->
       $el = $(item)
@@ -65,71 +95,22 @@ class QingSortable extends QingModule
       x: offset.left + $el.outerWidth()/2
       y: offset.top + $el.outerHeight()/2
     ).get()
-
-  _hideActiveItem: ($item)->
-    $item.addClass 'qing-sortable-hide'
-
-  _getDimension: (element)->
+  _getElementDimension: (element)->
     offset = $(element).offset()
     top: offset.top
     left: offset.left
     bottom: offset.top + $(element).outerHeight()
     right: offset.left + $(element).outerWidth()
     element: element
-
   _findNearestContainer: (itemDimension)->
-    distance = (x,y)->
-      Math.sqrt(Math.pow(x,2)+Math.pow(y,2))
-
-    compare = (d1, d2)->
-      #7     8     9
-      #
-      #    +---+
-      #    |   |
-      #6   | 1 |   2
-      #    |   |
-      #    +---+
-      #
-      #5     4     3
-      if d2.left > d1.right # 9 2 3
-        if d2.bottom < d1.top # 9
-          delta: distance d2.left-d1.right, d1.top - d2.bottom
-          position: 9
-        else if d2.top > d1.bottom # 3
-          delta: distance d2.left-d1.right, d2.top-d1.bottom
-          position: 3
-        else #2
-          delta: d2.left - d1.right
-          position: 2
-      else if d2.right < d1.left # 5 6 7
-        if d2.bottom < d1.top # 7
-          delta: distance d1.left-d2.right, d1.top - d2.bottom
-          position: 7
-        else if d2.top > d1.bottom # 5
-          delta: distance d1.left-d2.right, d2.top - d1.bottom
-          position: 5
-        else #6
-          delta: d1.left - d2.right
-          position: 6
-      else if d2.bottom < d1.top #8
-        delta: d1.top - d2.bottom
-        position: 8
-      else if d2.top > d1.bottom #4
-        delta: d2.top - d1.bottom
-        position: 4
-      else
-        delta: 0
-        position: 1
-
     list = $.map(@containerDimensions, (d, index)=>
-      diff = compare(d, itemDimension)
+      diff = compareDimensions(d, itemDimension)
       delta: diff.delta
       position: diff.position
       dimension: d
       element: d.element
     ).sort((a,b)-> a.delta - b.delta)
     list[0].element
-
   _getItemDimension: (e)->
     dimension =
       left: e.pageX - @mousePosition.x
@@ -149,15 +130,12 @@ class QingSortable extends QingModule
       c =
         x: offset.left + $el.outerWidth()/2
         y: offset.top + $el.outerHeight()/2
-      delta = Math.sqrt(Math.pow((center.x - c.x),2) +
-        Math.pow((center.y - c.y),2))
-      result =
-        delta: delta
-        element: el
-        center: c
-      result.xDelta = c.x - center.x
-      result.yDelta = c.y - center.y
-      result
+      delta = length(center.x - c.x, center.y - c.y)
+      delta: delta
+      element: el
+      center: c
+      xDelta: c.x - center.x
+      yDelta: c.y - center.y
     ).sort (a,b)->
       a.delta - b.delta
 

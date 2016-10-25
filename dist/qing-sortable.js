@@ -17,7 +17,7 @@
 }(this, function ($,QingModule) {
 var define, module, exports;
 var b = require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"qing-sortable":[function(require,module,exports){
-var $ACTIVE, $PLACEHOLDER, QingSortable, allContainers, allItems, cid, theContainer,
+var $ACTIVE, $PLACEHOLDER, QingSortable, allContainers, allItems, cid, compareDimensions, length, theContainer,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -32,6 +32,63 @@ allContainers = $([]);
 theContainer = null;
 
 cid = 1;
+
+length = function(x, y) {
+  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
+};
+
+compareDimensions = function(d1, d2) {
+  if (d2.left > d1.right) {
+    if (d2.bottom < d1.top) {
+      return {
+        delta: length(d2.left - d1.right, d1.top - d2.bottom),
+        position: 9
+      };
+    } else if (d2.top > d1.bottom) {
+      return {
+        delta: length(d2.left - d1.right, d2.top - d1.bottom),
+        position: 3
+      };
+    } else {
+      return {
+        delta: d2.left - d1.right,
+        position: 2
+      };
+    }
+  } else if (d2.right < d1.left) {
+    if (d2.bottom < d1.top) {
+      return {
+        delta: length(d1.left - d2.right, d1.top - d2.bottom),
+        position: 7
+      };
+    } else if (d2.top > d1.bottom) {
+      return {
+        delta: length(d1.left - d2.right, d2.top - d1.bottom),
+        position: 5
+      };
+    } else {
+      return {
+        delta: d1.left - d2.right,
+        position: 6
+      };
+    }
+  } else if (d2.bottom < d1.top) {
+    return {
+      delta: d1.top - d2.bottom,
+      position: 8
+    };
+  } else if (d2.top > d1.bottom) {
+    return {
+      delta: d2.top - d1.bottom,
+      position: 4
+    };
+  } else {
+    return {
+      delta: 0,
+      position: 1
+    };
+  }
+};
 
 QingSortable = (function(superClass) {
   extend(QingSortable, superClass);
@@ -88,26 +145,10 @@ QingSortable = (function(superClass) {
     };
   };
 
-  QingSortable.prototype._shouldCalculatePosition = function(e) {
-    if (!this.dragging) {
-      return false;
-    }
-    if ($(e.target).data('qingSortable')) {
-      return false;
-    }
-    if (e.target === $placeholder[0]) {
-      return false;
-    }
-    if (e.target === $active[0]) {
-      return false;
-    }
-    return true;
-  };
-
   QingSortable.prototype._cacheContainerDimensions = function() {
     return this.containerDimensions = allContainers.map((function(_this) {
       return function(index, container) {
-        return _this._getDimension(container);
+        return _this._getElementDimension(container);
       };
     })(this)).get();
   };
@@ -125,11 +166,7 @@ QingSortable = (function(superClass) {
     }).get();
   };
 
-  QingSortable.prototype._hideActiveItem = function($item) {
-    return $item.addClass('qing-sortable-hide');
-  };
-
-  QingSortable.prototype._getDimension = function(element) {
+  QingSortable.prototype._getElementDimension = function(element) {
     var offset;
     offset = $(element).offset();
     return {
@@ -142,66 +179,11 @@ QingSortable = (function(superClass) {
   };
 
   QingSortable.prototype._findNearestContainer = function(itemDimension) {
-    var compare, distance, list;
-    distance = function(x, y) {
-      return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
-    };
-    compare = function(d1, d2) {
-      if (d2.left > d1.right) {
-        if (d2.bottom < d1.top) {
-          return {
-            delta: distance(d2.left - d1.right, d1.top - d2.bottom),
-            position: 9
-          };
-        } else if (d2.top > d1.bottom) {
-          return {
-            delta: distance(d2.left - d1.right, d2.top - d1.bottom),
-            position: 3
-          };
-        } else {
-          return {
-            delta: d2.left - d1.right,
-            position: 2
-          };
-        }
-      } else if (d2.right < d1.left) {
-        if (d2.bottom < d1.top) {
-          return {
-            delta: distance(d1.left - d2.right, d1.top - d2.bottom),
-            position: 7
-          };
-        } else if (d2.top > d1.bottom) {
-          return {
-            delta: distance(d1.left - d2.right, d2.top - d1.bottom),
-            position: 5
-          };
-        } else {
-          return {
-            delta: d1.left - d2.right,
-            position: 6
-          };
-        }
-      } else if (d2.bottom < d1.top) {
-        return {
-          delta: d1.top - d2.bottom,
-          position: 8
-        };
-      } else if (d2.top > d1.bottom) {
-        return {
-          delta: d2.top - d1.bottom,
-          position: 4
-        };
-      } else {
-        return {
-          delta: 0,
-          position: 1
-        };
-      }
-    };
+    var list;
     list = $.map(this.containerDimensions, (function(_this) {
       return function(d, index) {
         var diff;
-        diff = compare(d, itemDimension);
+        diff = compareDimensions(d, itemDimension);
         return {
           delta: diff.delta,
           position: diff.position,
@@ -234,22 +216,21 @@ QingSortable = (function(superClass) {
       y: (itemDimension.top + itemDimension.bottom) / 2
     };
     all = items.map(function(index, el) {
-      var $el, c, delta, offset, result;
+      var $el, c, delta, offset;
       $el = $(el);
       offset = $el.offset();
       c = {
         x: offset.left + $el.outerWidth() / 2,
         y: offset.top + $el.outerHeight() / 2
       };
-      delta = Math.sqrt(Math.pow(center.x - c.x, 2) + Math.pow(center.y - c.y, 2));
-      result = {
+      delta = length(center.x - c.x, center.y - c.y);
+      return {
         delta: delta,
         element: el,
-        center: c
+        center: c,
+        xDelta: c.x - center.x,
+        yDelta: c.y - center.y
       };
-      result.xDelta = c.x - center.x;
-      result.yDelta = c.y - center.y;
-      return result;
     }).sort(function(a, b) {
       return a.delta - b.delta;
     });
