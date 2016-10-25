@@ -3,6 +3,7 @@ $PLACEHOLDER = null
 allItems = $ []
 allContainers = $ []
 theContainer = null
+cid = 1
 
 class QingSortable extends QingModule
 
@@ -18,6 +19,7 @@ class QingSortable extends QingModule
     @container = $(@opts.container)
     @items = @container.find(@opts.items)
     @_checkOptions()
+    @_cid = cid++
     allContainers = allContainers.add @container
     allItems = allItems.add @items
     @_bind()
@@ -162,9 +164,9 @@ class QingSortable extends QingModule
     all[0]
 
   _bind: ->
-    $scope = $ @opts.scope
+    @scope = $ @opts.scope
 
-    $scope.on 'dragstart.qingSortable', @opts.items, (e)=>
+    @scope.on "dragstart.qingSortable#{@_cid}", @opts.items, (e)=>
       $item = $ e.target
       return unless $.contains @container[0], e.target
       @isDragging = true
@@ -174,13 +176,8 @@ class QingSortable extends QingModule
       @_setDragImage e
       $item.addClass 'qing-sortable-placeholder'
       $ACTIVE = $item
-      $PLACEHOLDER = $item.clone().attr({dataPlaceholder:true})
-    $scope.on 'dragleave.qingSortable', @opts.items, (e)=>
-      return unless @isDragging
-      if e.currentTarget is $ACTIVE[0]
-        $ACTIVE.removeClass('qing-sortable-placeholder')
-          .addClass 'qing-sortable-hide'
-    $scope.on 'dragover.qingSortable',  (e)=>
+      $PLACEHOLDER = $item.clone()
+    @scope.on "dragover.qingSortable#{@_cid}",  (e)=>
       e.preventDefault()
       return unless @isDragging
       return if (e.target is $ACTIVE[0]) or ($.contains $ACTIVE[0], e.target)
@@ -194,15 +191,21 @@ class QingSortable extends QingModule
         method = if nearItem.yDelta>0 then 'before' else 'after'
       $(nearItem.element)[method] $PLACEHOLDER
 
-    $scope.on 'dragend.qingSortable', @opts.items, (e)=>
+    @scope.on "dragend.qingSortable#{@_cid}", @opts.items, (e)=>
       return unless @isDragging
       $ACTIVE.removeClass('qing-sortable-placeholder qing-sortable-hide')
       if $PLACEHOLDER and $.contains document,$PLACEHOLDER[0]
         $PLACEHOLDER.replaceWith $ACTIVE
         $PLACEHOLDER = null
       ACTIVE = null
+    @scope.on "dragleave.qingSortable#{@_cid}", @opts.items, (e)=>
+      return unless @isDragging
+      if e.currentTarget is $ACTIVE[0]
+        $ACTIVE.removeClass('qing-sortable-placeholder')
+          .addClass 'qing-sortable-hide'
   destroy: ->
     allItems = allItems.not @items
     allContainers = allContainers.not @contains
+    @scope.off ".qingSortable#{@_cid}"
 
 module.exports = QingSortable

@@ -17,7 +17,7 @@
 }(this, function ($,QingModule) {
 var define, module, exports;
 var b = require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"qing-sortable":[function(require,module,exports){
-var $ACTIVE, $PLACEHOLDER, QingSortable, allContainers, allItems, theContainer,
+var $ACTIVE, $PLACEHOLDER, QingSortable, allContainers, allItems, cid, theContainer,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
 
@@ -30,6 +30,8 @@ allItems = $([]);
 allContainers = $([]);
 
 theContainer = null;
+
+cid = 1;
 
 QingSortable = (function(superClass) {
   extend(QingSortable, superClass);
@@ -47,6 +49,7 @@ QingSortable = (function(superClass) {
     this.container = $(this.opts.container);
     this.items = this.container.find(this.opts.items);
     this._checkOptions();
+    this._cid = cid++;
     allContainers = allContainers.add(this.container);
     allItems = allItems.add(this.items);
     this._bind();
@@ -254,9 +257,8 @@ QingSortable = (function(superClass) {
   };
 
   QingSortable.prototype._bind = function() {
-    var $scope;
-    $scope = $(this.opts.scope);
-    $scope.on('dragstart.qingSortable', this.opts.items, (function(_this) {
+    this.scope = $(this.opts.scope);
+    this.scope.on("dragstart.qingSortable" + this._cid, this.opts.items, (function(_this) {
       return function(e) {
         var $item;
         $item = $(e.target);
@@ -270,22 +272,10 @@ QingSortable = (function(superClass) {
         _this._setDragImage(e);
         $item.addClass('qing-sortable-placeholder');
         $ACTIVE = $item;
-        return $PLACEHOLDER = $item.clone().attr({
-          dataPlaceholder: true
-        });
+        return $PLACEHOLDER = $item.clone();
       };
     })(this));
-    $scope.on('dragleave.qingSortable', this.opts.items, (function(_this) {
-      return function(e) {
-        if (!_this.isDragging) {
-          return;
-        }
-        if (e.currentTarget === $ACTIVE[0]) {
-          return $ACTIVE.removeClass('qing-sortable-placeholder').addClass('qing-sortable-hide');
-        }
-      };
-    })(this));
-    $scope.on('dragover.qingSortable', (function(_this) {
+    this.scope.on("dragover.qingSortable" + this._cid, (function(_this) {
       return function(e) {
         var itemDimension, method, nearItem, nearestContainer;
         e.preventDefault();
@@ -307,7 +297,7 @@ QingSortable = (function(superClass) {
         return $(nearItem.element)[method]($PLACEHOLDER);
       };
     })(this));
-    return $scope.on('dragend.qingSortable', this.opts.items, (function(_this) {
+    this.scope.on("dragend.qingSortable" + this._cid, this.opts.items, (function(_this) {
       return function(e) {
         var ACTIVE;
         if (!_this.isDragging) {
@@ -321,11 +311,22 @@ QingSortable = (function(superClass) {
         return ACTIVE = null;
       };
     })(this));
+    return this.scope.on("dragleave.qingSortable" + this._cid, this.opts.items, (function(_this) {
+      return function(e) {
+        if (!_this.isDragging) {
+          return;
+        }
+        if (e.currentTarget === $ACTIVE[0]) {
+          return $ACTIVE.removeClass('qing-sortable-placeholder').addClass('qing-sortable-hide');
+        }
+      };
+    })(this));
   };
 
   QingSortable.prototype.destroy = function() {
     allItems = allItems.not(this.items);
-    return allContainers = allContainers.not(this.contains);
+    allContainers = allContainers.not(this.contains);
+    return this.scope.off(".qingSortable" + this._cid);
   };
 
   return QingSortable;
