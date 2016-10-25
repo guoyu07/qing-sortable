@@ -10,94 +10,113 @@
 	<script type="text/javascript" src="https://unpkg.com/jquery@^3.1.0/dist/jquery.js"></script>
 	<script type="text/javascript" src="https://unpkg.com/qing-module@~1.0.0/dist/qing-module.js"></script>
 	<script type="text/javascript" src="dist/qing-sortable.js"></script>
-	<script type="text/javascript">
-		$(function() {
-      new QingSortable({
-        container: '.sort1',
-        axis: 'x'
-      });
-      new QingSortable({
-        container: '.sort2',
-        axis: 'x'
-      });
-      new QingSortable({
-        container: '.verticle',
-        axis: 'y'
-      });
-		});
-	</script>
 
   <style>
     *{margin:0; padding:0; box-sizing: border-box;}
     ul,ol {list-style: none;}
-    .cover{background: red;}
     body{padding: 100px;}
-    .yyy {outline: 1px solid red;}
   </style>
 
 </head>
 <body>
-  <style>
-    .sort {text-align: center; margin-top: 40px; display: flex; border: 1px solid black;
-      flex-wrap: wrap; justify-content: center;}
-    .sort>li{margin: 8px;width: 60px; height: 60px;
-      line-height: 60px; border: 1px solid; background: #ccc; list-style:none; text-align: center;
-    }
-    .sort>li.qing-sortable-placeholder {
-      background: red;
-      line-height: 40px;
-      border: 10px dashed red;
-      background: white !important;
-    }
-    .sort>li.qing-sortable-placeholder span{
-      display: none;
-    }
-    .qing-sortable-dragimage{
-    }
-    .verticle > li{
-      border: 1px solid red;
-    }
-    .verticle .qing-sortable-placeholder{
-      background: yellow;
-        text-indent: -100000px;
-    }
-  </style>
-  <div style=""></div>
-  <ul class="sort sort1">
-    <li draggable=true style="background: #333;"><span>选项1</span></li>
-    <li draggable=true style="background: #444;"><span>选项2</span></li>
-    <li draggable=true style="background: #555;"><span>选项3</span></li>
-    <li draggable=true style="background: #666;"><span>选项4</span></li>
-    <li draggable=true style="background: #777;"><span>选项5</span></li>
-    <li draggable=true style="background: #888;"><span>选项6</span></li>
-    <li draggable=true style="background: #999;"><span>选项7</span></li>
-    <li draggable=true style="background: #AAA;"><span>选项8</span></li>
-    <li draggable=true style="background: #BBB;"><span>选项9</span></li>
-    <li draggable=true style="background: #CCC;"><span>选项10</span></li>
-    <li draggable=true style="background: #DDD;"><span>选项11</span></li>
-    <li draggable=true style="background: #EEE;"><span>选项12</span></li>
-    <li draggable=true style="background: #FFF;"><span>选项13</span></li>
-    <li draggable=true style="background: #333;"><span>选项14</span></li>
-    <li draggable=true style="background: #444;"><span>选项15</span></li>
-    <li draggable=true style="background: #555;"><span>选项16</span></li>
-    <li draggable=true style="background: #666;"><span>选项17</span></li>
-    <li draggable=true style="background: #777;"><span>选项18</span></li>
-    <li draggable=true style="background: #888;"><span>选项19</span></li>
-    <li draggable=true style="background: #999;"><span>选项20</span></li>
-  </ul>
-  <ul class="sort sort2">
-    <li draggable=true>选项1</li>
-    <li draggable=true>选项2</li>
-    <li draggable=true>选项3</li>
-    <li draggable=true>选项4</li>
-    <li draggable=true>选项5</li>
-  </ul>
-  <ul class="verticle" style="margin-top: 50px;">
-    <li draggable=true>选项1</li>
-    <li draggable=true>选项2</li>
-    <li draggable=true>选项3</li>
-    <li draggable=true>选项4</li>
-    <li draggable=true>选项5</li>
-  </ul>
+  <div id=demo1 class="panel">
+    <h1>One group, vertical items</h1>
+    <ol>
+      <li draggable=true class=sortable1>选项1</li>
+      <li draggable=true class=sortable1>选项2</li>
+      <li draggable=true class=sortable1>选项3</li>
+      <li draggable=true class=sortable1>选项4</li>
+      <li draggable=true class=sortable1>选项5</li>
+      <li draggable=true class=sortable1>选项6</li>
+      <li draggable=true class=sortable1>选项7</li>
+      <li draggable=true class=sortable1>选项8</li>
+    </ol>
+    <script>
+      new QingSortable({
+        el: '#demo1',
+        items: '.sortable1'
+      })
+    </script>
+  </div>
+  <div id=demo2 class="panel">
+    <h1>One group, horizontal items</h1>
+    <ol>
+      <li draggable=true class=sortable2>选项1</li>
+      <li draggable=true class=sortable2>选项2</li>
+      <li draggable=true class=sortable2>选项3</li>
+      <li draggable=true class=sortable2>选项4</li>
+      <li draggable=true class=sortable2>选项5</li>
+      <li draggable=true class=sortable2>选项6</li>
+      <li draggable=true class=sortable2>选项7</li>
+      <li draggable=true class=sortable2>选项8</li>
+    </ol>
+    <script>
+      new QingSortable({
+        el: '#demo2',
+        items: '.sortable2'
+      })
+    </script>
+  </div>
+  <div id=demo3 class="panel">
+    <h1>Two groups, verticle items</h1>
+    <ol>
+      <li draggable=true class=sortable3>选项1</li>
+      <li draggable=true class=sortable3>选项2</li>
+      <li draggable=true class=sortable3>选项3</li>
+      <li draggable=true class=sortable3>选项4</li>
+      <li draggable=true class=sortable3>选项5</li>
+      <li draggable=true class=sortable3>选项6</li>
+      <li draggable=true class=sortable3>选项7</li>
+      <li draggable=true class=sortable3>选项8</li>
+    </ol>
+    <ol>
+      <li draggable=true class=sortable3>选项1</li>
+      <li draggable=true class=sortable3>选项2</li>
+      <li draggable=true class=sortable3>选项3</li>
+      <li draggable=true class=sortable3>选项4</li>
+      <li draggable=true class=sortable3>选项5</li>
+      <li draggable=true class=sortable3>选项6</li>
+      <li draggable=true class=sortable3>选项7</li>
+      <li draggable=true class=sortable3>选项8</li>
+    </ol>
+    <script>
+      new QingSortable({
+        el: '#demo3',
+        groups: 'ol',
+        items: '.sortable3'
+      })
+    </script>
+  </div>
+  <div id=demo4 class="panel">
+    <h1>Two groups, horizontal items</h1>
+    <ol>
+      <li draggable=true class=sortable4>选项1</li>
+      <li draggable=true class=sortable4>选项2</li>
+      <li draggable=true class=sortable4>选项3</li>
+      <li draggable=true class=sortable4>选项4</li>
+      <li draggable=true class=sortable4>选项5</li>
+      <li draggable=true class=sortable4>选项6</li>
+      <li draggable=true class=sortable4>选项7</li>
+      <li draggable=true class=sortable4>选项8</li>
+    </ol>
+    <ol>
+      <li draggable=true class=sortable4>选项1</li>
+      <li draggable=true class=sortable4>选项2</li>
+      <li draggable=true class=sortable4>选项3</li>
+      <li draggable=true class=sortable4>选项4</li>
+      <li draggable=true class=sortable4>选项5</li>
+      <li draggable=true class=sortable4>选项6</li>
+      <li draggable=true class=sortable4>选项7</li>
+      <li draggable=true class=sortable4>选项8</li>
+    </ol>
+    <script>
+      new QingSortable({
+        el: '#demo4',
+        groups: 'ol',
+        items: '.sortable4'
+      })
+    </script>
+  </div>
+
 </body>
 </html>

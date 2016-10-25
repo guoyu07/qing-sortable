@@ -1,5 +1,3 @@
-$ACTIVE = null
-$PLACEHOLDER = null
 allItems = $ []
 allContainers = $ []
 theContainer = null
@@ -44,6 +42,8 @@ compareDimensions = (d1, d2)->
 
 class QingSortable extends QingModule
 
+  activeItem: null
+
   @opts:
     scope: document
     container: null
@@ -53,20 +53,20 @@ class QingSortable extends QingModule
   constructor: (opts) ->
     super
     @opts = $.extend {}, QingSortable.opts, @opts
-    @container = $(@opts.container)
-    @items = @container.find(@opts.items)
+    @groups = $(@opts.container)
+    @items = @groups.find(@opts.items)
     @_checkOptions()
     @_cid = cid++
-    allContainers = allContainers.add @container
+    allContainers = allContainers.add @groups
     allItems = allItems.add @items
     @_bind()
   _checkOptions: ->
     unless @opts.items.length > 0
       throw new Error 'QingSortable: option items is required'
-    unless @container.length > 0
+    unless @groups.length > 0
       throw new Error 'QingSortable: option container is required'
   _setDragImage: (e)->
-    @dragImage?.hide().remove()
+    @dragImage?.remove()
     $item = $(e.currentTarget)
     @dragImage = $item.clone().addClass('qing-sortable-dragimage')
     @dragImage.css
@@ -84,7 +84,7 @@ class QingSortable extends QingModule
       x: e.pageX-$item.offset().left
       y: e.pageY-$item.offset().top
   _cacheContainerDimensions: ()->
-    @containerDimensions = allContainers.map((index, container)=>
+    @groupsDimensions = allContainers.map((index, container)=>
       @_getElementDimension container
     ).get()
   _cacheItemPositions: ()->
@@ -103,7 +103,7 @@ class QingSortable extends QingModule
     right: offset.left + $(element).outerWidth()
     element: element
   _findNearestContainer: (itemDimension)->
-    list = $.map(@containerDimensions, (d, index)=>
+    list = $.map(@groupsDimensions, (d, index)=>
       diff = compareDimensions(d, itemDimension)
       delta: diff.delta
       position: diff.position
@@ -115,11 +115,11 @@ class QingSortable extends QingModule
     dimension =
       left: e.pageX - @mousePosition.x
       top: e.pageY - @mousePosition.y
-    dimension.right = dimension.left + $ACTIVE.outerWidth()
-    dimension.bottom = dimension.top + $ACTIVE.outerHeight()
+    dimension.right = dimension.left + @activeItem.outerWidth()
+    dimension.bottom = dimension.top + @activeItem.outerHeight()
     dimension
   _findNearestItem: (itemDimension, container)->
-    items = $(container).find(@opts.items).not($PLACEHOLDER)
+    items = $(container).find(@opts.items).not(@placeholder)
     center =
       x: (itemDimension.left + itemDimension.right) /2
       y: (itemDimension.top + itemDimension.bottom) /2
@@ -146,19 +146,20 @@ class QingSortable extends QingModule
 
     @scope.on "dragstart.qingSortable#{@_cid}", @opts.items, (e)=>
       $item = $ e.target
-      return unless $.contains @container[0], e.target
+      return unless $.contains @groups[0], e.target
       @isDragging = true
       @_cacheContainerDimensions()
       @_cacheItemPositions()
       @_cacheMousePosition(e)
       @_setDragImage e
       $item.addClass 'qing-sortable-placeholder'
-      $ACTIVE = $item
-      $PLACEHOLDER = $item.clone()
+      @activeItem = $item
+      @placeholder = $item.clone()
     @scope.on "dragover.qingSortable#{@_cid}",  (e)=>
       e.preventDefault()
       return unless @isDragging
-      return if (e.target is $ACTIVE[0]) or ($.contains $ACTIVE[0], e.target)
+      return if e.target is @activeItem[0]
+      return if $.contains @activeItem[0], e.target
       itemDimension = @_getItemDimension e
       nearestContainer = @_findNearestContainer itemDimension
       nearItem = @_findNearestItem itemDimension, nearestContainer
@@ -167,19 +168,19 @@ class QingSortable extends QingModule
         method = if nearItem.xDelta>0 then 'before' else 'after'
       else
         method = if nearItem.yDelta>0 then 'before' else 'after'
-      $(nearItem.element)[method] $PLACEHOLDER
+      $(nearItem.element)[method] @placeholder
 
     @scope.on "dragend.qingSortable#{@_cid}", @opts.items, (e)=>
       return unless @isDragging
-      $ACTIVE.removeClass('qing-sortable-placeholder qing-sortable-hide')
-      if $PLACEHOLDER and $.contains document,$PLACEHOLDER[0]
-        $PLACEHOLDER.replaceWith $ACTIVE
-        $PLACEHOLDER = null
+      @activeItem.removeClass('qing-sortable-placeholder qing-sortable-hide')
+      if @placeholder and $.contains document,@placeholder[0]
+        @placeholder.replaceWith @activeItem
+        @placeholder = null
       ACTIVE = null
     @scope.on "dragleave.qingSortable#{@_cid}", @opts.items, (e)=>
       return unless @isDragging
-      if e.currentTarget is $ACTIVE[0]
-        $ACTIVE.removeClass('qing-sortable-placeholder')
+      if e.currentTarget is @activeItem[0]
+        @activeItem.removeClass('qing-sortable-placeholder')
           .addClass 'qing-sortable-hide'
   destroy: ->
     allItems = allItems.not @items

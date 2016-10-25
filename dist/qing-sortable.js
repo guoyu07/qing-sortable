@@ -17,13 +17,9 @@
 }(this, function ($,QingModule) {
 var define, module, exports;
 var b = require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"qing-sortable":[function(require,module,exports){
-var $ACTIVE, $PLACEHOLDER, QingSortable, allContainers, allItems, cid, compareDimensions, length, theContainer,
+var QingSortable, allContainers, allItems, cid, compareDimensions, length, theContainer,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
   hasProp = {}.hasOwnProperty;
-
-$ACTIVE = null;
-
-$PLACEHOLDER = null;
 
 allItems = $([]);
 
@@ -93,6 +89,8 @@ compareDimensions = function(d1, d2) {
 QingSortable = (function(superClass) {
   extend(QingSortable, superClass);
 
+  QingSortable.prototype.activeItem = null;
+
   QingSortable.opts = {
     scope: document,
     container: null,
@@ -103,11 +101,11 @@ QingSortable = (function(superClass) {
   function QingSortable(opts) {
     QingSortable.__super__.constructor.apply(this, arguments);
     this.opts = $.extend({}, QingSortable.opts, this.opts);
-    this.container = $(this.opts.container);
-    this.items = this.container.find(this.opts.items);
+    this.groups = $(this.opts.container);
+    this.items = this.groups.find(this.opts.items);
     this._checkOptions();
     this._cid = cid++;
-    allContainers = allContainers.add(this.container);
+    allContainers = allContainers.add(this.groups);
     allItems = allItems.add(this.items);
     this._bind();
   }
@@ -116,7 +114,7 @@ QingSortable = (function(superClass) {
     if (!(this.opts.items.length > 0)) {
       throw new Error('QingSortable: option items is required');
     }
-    if (!(this.container.length > 0)) {
+    if (!(this.groups.length > 0)) {
       throw new Error('QingSortable: option container is required');
     }
   };
@@ -124,7 +122,7 @@ QingSortable = (function(superClass) {
   QingSortable.prototype._setDragImage = function(e) {
     var $item, ref;
     if ((ref = this.dragImage) != null) {
-      ref.hide().remove();
+      ref.remove();
     }
     $item = $(e.currentTarget);
     this.dragImage = $item.clone().addClass('qing-sortable-dragimage');
@@ -146,7 +144,7 @@ QingSortable = (function(superClass) {
   };
 
   QingSortable.prototype._cacheContainerDimensions = function() {
-    return this.containerDimensions = allContainers.map((function(_this) {
+    return this.groupsDimensions = allContainers.map((function(_this) {
       return function(index, container) {
         return _this._getElementDimension(container);
       };
@@ -180,7 +178,7 @@ QingSortable = (function(superClass) {
 
   QingSortable.prototype._findNearestContainer = function(itemDimension) {
     var list;
-    list = $.map(this.containerDimensions, (function(_this) {
+    list = $.map(this.groupsDimensions, (function(_this) {
       return function(d, index) {
         var diff;
         diff = compareDimensions(d, itemDimension);
@@ -203,14 +201,14 @@ QingSortable = (function(superClass) {
       left: e.pageX - this.mousePosition.x,
       top: e.pageY - this.mousePosition.y
     };
-    dimension.right = dimension.left + $ACTIVE.outerWidth();
-    dimension.bottom = dimension.top + $ACTIVE.outerHeight();
+    dimension.right = dimension.left + this.activeItem.outerWidth();
+    dimension.bottom = dimension.top + this.activeItem.outerHeight();
     return dimension;
   };
 
   QingSortable.prototype._findNearestItem = function(itemDimension, container) {
     var all, center, items;
-    items = $(container).find(this.opts.items).not($PLACEHOLDER);
+    items = $(container).find(this.opts.items).not(this.placeholder);
     center = {
       x: (itemDimension.left + itemDimension.right) / 2,
       y: (itemDimension.top + itemDimension.bottom) / 2
@@ -243,7 +241,7 @@ QingSortable = (function(superClass) {
       return function(e) {
         var $item;
         $item = $(e.target);
-        if (!$.contains(_this.container[0], e.target)) {
+        if (!$.contains(_this.groups[0], e.target)) {
           return;
         }
         _this.isDragging = true;
@@ -252,8 +250,8 @@ QingSortable = (function(superClass) {
         _this._cacheMousePosition(e);
         _this._setDragImage(e);
         $item.addClass('qing-sortable-placeholder');
-        $ACTIVE = $item;
-        return $PLACEHOLDER = $item.clone();
+        _this.activeItem = $item;
+        return _this.placeholder = $item.clone();
       };
     })(this));
     this.scope.on("dragover.qingSortable" + this._cid, (function(_this) {
@@ -263,7 +261,10 @@ QingSortable = (function(superClass) {
         if (!_this.isDragging) {
           return;
         }
-        if ((e.target === $ACTIVE[0]) || ($.contains($ACTIVE[0], e.target))) {
+        if (e.target === _this.activeItem[0]) {
+          return;
+        }
+        if ($.contains(_this.activeItem[0], e.target)) {
           return;
         }
         itemDimension = _this._getItemDimension(e);
@@ -275,7 +276,7 @@ QingSortable = (function(superClass) {
         } else {
           method = nearItem.yDelta > 0 ? 'before' : 'after';
         }
-        return $(nearItem.element)[method]($PLACEHOLDER);
+        return $(nearItem.element)[method](_this.placeholder);
       };
     })(this));
     this.scope.on("dragend.qingSortable" + this._cid, this.opts.items, (function(_this) {
@@ -284,10 +285,10 @@ QingSortable = (function(superClass) {
         if (!_this.isDragging) {
           return;
         }
-        $ACTIVE.removeClass('qing-sortable-placeholder qing-sortable-hide');
-        if ($PLACEHOLDER && $.contains(document, $PLACEHOLDER[0])) {
-          $PLACEHOLDER.replaceWith($ACTIVE);
-          $PLACEHOLDER = null;
+        _this.activeItem.removeClass('qing-sortable-placeholder qing-sortable-hide');
+        if (_this.placeholder && $.contains(document, _this.placeholder[0])) {
+          _this.placeholder.replaceWith(_this.activeItem);
+          _this.placeholder = null;
         }
         return ACTIVE = null;
       };
@@ -297,8 +298,8 @@ QingSortable = (function(superClass) {
         if (!_this.isDragging) {
           return;
         }
-        if (e.currentTarget === $ACTIVE[0]) {
-          return $ACTIVE.removeClass('qing-sortable-placeholder').addClass('qing-sortable-hide');
+        if (e.currentTarget === _this.activeItem[0]) {
+          return _this.activeItem.removeClass('qing-sortable-placeholder').addClass('qing-sortable-hide');
         }
       };
     })(this));
