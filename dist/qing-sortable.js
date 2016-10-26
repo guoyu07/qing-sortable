@@ -89,7 +89,7 @@ QingSortable = (function(superClass) {
     return this._bind();
   };
 
-  QingSortable.prototype._generateHelper = function($item) {
+  QingSortable.prototype._appendHelper = function($item) {
     this.helper = $item.clone().addClass('qing-sortable-helper');
     this.helper.outerWidth($item.outerWidth());
     this.helper.outerHeight($item.outerHeight());
@@ -105,8 +105,8 @@ QingSortable = (function(superClass) {
         var $item, offset;
         $item = $(e.currentTarget);
         offset = $item.offset();
-        e.originalEvent.dataTransfer.setDragImage(_this._generateHelper($item).get(0), e.pageX - offset.left, e.pageY - offset.top);
-        return _this._onDragStart($item);
+        _this._onDragStart($item);
+        return e.originalEvent.dataTransfer.setDragImage(_this.helper.get(0), e.pageX - offset.left, e.pageY - offset.top);
       };
     })(this));
     this.el.on("dragover.qingSortable" + this.id, (function(_this) {
@@ -121,33 +121,44 @@ QingSortable = (function(superClass) {
     })(this));
   };
 
-  QingSortable.prototype._cacheMousePosition = function(pageX, pageY) {
-    var offset;
-    offset = this.activeItem.offset();
-    return this.mousePosition = {
-      x: pageX - offset.left,
-      y: pageY - offset.top
-    };
-  };
-
   QingSortable.prototype._onDragStart = function($item) {
     this.activeItem = $item;
-    $item.addClass('qing-sortable-placeholder');
-    this._cacheDimensions();
-    this._cacheMousePosition();
-    return this._generatePlaceholder();
+    this._appendHelper($item);
+    this._generatePlaceholder($item);
+    return this._cacheDimensions();
   };
+
+  QingSortable.prototype._lastDrag = null;
+
+  QingSortable.prototype._lastNear = null;
 
   QingSortable.prototype._onDragOver = function(x, y) {
     if (!this.activeItem) {
       return;
     }
+    if (this._lastDrag && x === this._lastDrag[0] && y === this._lastDrag[1]) {
+      return;
+    }
+    this._lastDrag = [x, y];
     this.nearDimension = this._findNearItemDimension(x, y);
-    $(this.nearDimension.element).addClass('qing-sortable-near').siblings().removeClass('qing-sortable-near');
+    if (!this.nearDimension) {
+      return;
+    }
+    if (this._nearPlaceholder([x, y], this.nearDimension)) {
+      return;
+    }
     this._movePlaceholderTo(this.nearDimension, [x, y]);
     this.activeItem.removeClass('qing-sortable-placeholder');
     this.activeItem.addClass('qing-sortable-hide');
     return this._updateDimensions();
+  };
+
+  QingSortable.prototype._nearPlaceholder = function(mouse, nearDimension) {
+    var d;
+    if (this.placeholder) {
+      d = QingSortable.getElementDimension(this.placeholder);
+      return QingSortable.pointToDimension(mouse, d) < nearDimension.delta;
+    }
   };
 
   QingSortable.prototype._onDragEnd = function() {
@@ -155,16 +166,14 @@ QingSortable = (function(superClass) {
       return;
     }
     this.activeItem.removeClass('qing-sortable-placeholder qing-sortable-hide');
-    $(this.nearDimension.element).removeClass('qing-sortable-near');
     this.placeholder.replaceWith(this.activeItem);
     this.helper.remove();
     this.helper = null;
     this.activeItem = null;
     this.placeholder = null;
-    return this.nearDimension = null;
+    this.nearDimension = null;
+    return this._lastDrag = null;
   };
-
-  QingSortable.prototype._reset = function() {};
 
   QingSortable.prototype.destroy = function() {
     var ref, ref1;
@@ -172,11 +181,14 @@ QingSortable = (function(superClass) {
     if ((ref = this.helper) != null) {
       ref.remove();
     }
+    this.helper = null;
     this.activeItem = null;
     if ((ref1 = this.placeholder) != null) {
       ref1.remove();
     }
-    return this.nearDimension = null;
+    this.placeholder = null;
+    this.nearDimension = null;
+    return this._lastDrag = null;
   };
 
   QingSortable.prototype._movePlaceholderTo = function(dimension, mousePoint) {
@@ -197,20 +209,24 @@ QingSortable = (function(superClass) {
     }
   };
 
-  QingSortable.prototype._generatePlaceholder = function() {
-    return this.placeholder = this.activeItem.clone();
+  QingSortable.prototype._generatePlaceholder = function($item) {
+    return this.placeholder = $item.clone().addClass('qing-sortable-placeholder');
   };
 
   QingSortable.prototype._findNearItemDimension = function(x, y) {
-    if (this.opts.groups) {
-      return this._findNearGroup(x, y);
-    } else {
-      return this.dimensions.sort(function(a, b) {
-        var deltaA, deltaB;
-        deltaA = QingSortable.pointToDimension([x, y], a);
-        deltaB = QingSortable.pointToDimension([x, y], b);
-        return deltaA - deltaB;
+    var nearest;
+    nearest = function(dimensions) {
+      return dimensions.map(function(d) {
+        d.delta = QingSortable.pointToDimension([x, y], d);
+        return d;
+      }).sort(function(a, b) {
+        return a.delta - b.delta;
       })[0];
+    };
+    if (this.opts.groups) {
+      return nearest(nearest(this.dimensions).children);
+    } else {
+      return nearest(this.dimensions);
     }
   };
 
