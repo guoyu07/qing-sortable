@@ -77,19 +77,22 @@ class QingSortable extends QingModule
     return unless @activeItem
     return if @_lastDrag and x is @_lastDrag[0] and y is @_lastDrag[1]
     @_lastDrag = [x,y]
-    @nearDimension = @_findNearItemDimension(x,y)
-    return unless @nearDimension
-    return if @_nearPlaceholder([x,y], @nearDimension)
+    near = @_findNearest(x,y)
+    return unless near.dimension
+    return if @_placeholderDistance([x,y]) < near.dimension.delta
 
-    @_movePlaceholderTo @nearDimension, [x,y]
+    if near.type is 'item'
+      @_movePlaceholderTo near.dimension, [x,y]
+    else
+      $(near.dimension.element).append @placeholder
     @activeItem.removeClass('qing-sortable-placeholder')
     @activeItem.addClass 'qing-sortable-hide'
     @_updateDimensions()
 
-  _nearPlaceholder: (mouse, nearDimension)->
-    if @placeholder
-      d = QingSortable.getElementDimension(@placeholder)
-      QingSortable.pointToDimension(mouse, d) < nearDimension.delta
+  _placeholderDistance: (mouse, delta)->
+    return Infinity unless @placeholder
+    d = QingSortable.getElementDimension(@placeholder)
+    QingSortable.pointToDimension(mouse, d)
 
   _onDragEnd: ()->
     return unless @activeItem
@@ -99,7 +102,6 @@ class QingSortable extends QingModule
     @helper = null
     @activeItem = null
     @placeholder = null
-    @nearDimension = null
     @_lastDrag = null
 
   destroy: ->
@@ -109,7 +111,6 @@ class QingSortable extends QingModule
     @activeItem = null
     @placeholder?.remove()
     @placeholder = null
-    @nearDimension = null
     @_lastDrag = null
 
   _movePlaceholderTo: (dimension, mousePoint)->
@@ -128,7 +129,7 @@ class QingSortable extends QingModule
   _generatePlaceholder: ($item)->
     @placeholder = $item.clone().addClass 'qing-sortable-placeholder'
 
-  _findNearItemDimension: (x,y)->
+  _findNearest: (x,y)->
     nearest = (dimensions)->
       dimensions.map((d)->
         d.delta = QingSortable.pointToDimension [x,y], d
@@ -137,9 +138,16 @@ class QingSortable extends QingModule
         a.delta - b.delta
       )[0]
     if @opts.groups
-      nearest(nearest(@dimensions).children)
+      group = nearest(@dimensions)
+      if group.children and group.children.length > 0
+        type: 'item'
+        dimension: nearest(group.children)
+      else
+        type: 'group'
+        dimension: group
     else
-      nearest(@dimensions)
+      type: 'item'
+      dimension: nearest(@dimensions)
 
   _cacheDimensions: ()->
     collectItemDimensions = ($el)=>

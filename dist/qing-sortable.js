@@ -133,6 +133,7 @@ QingSortable = (function(superClass) {
   QingSortable.prototype._lastNear = null;
 
   QingSortable.prototype._onDragOver = function(x, y) {
+    var near;
     if (!this.activeItem) {
       return;
     }
@@ -140,25 +141,30 @@ QingSortable = (function(superClass) {
       return;
     }
     this._lastDrag = [x, y];
-    this.nearDimension = this._findNearItemDimension(x, y);
-    if (!this.nearDimension) {
+    near = this._findNearest(x, y);
+    if (!near.dimension) {
       return;
     }
-    if (this._nearPlaceholder([x, y], this.nearDimension)) {
+    if (this._placeholderDistance([x, y]) < near.dimension.delta) {
       return;
     }
-    this._movePlaceholderTo(this.nearDimension, [x, y]);
+    if (near.type === 'item') {
+      this._movePlaceholderTo(near.dimension, [x, y]);
+    } else {
+      $(near.dimension.element).append(this.placeholder);
+    }
     this.activeItem.removeClass('qing-sortable-placeholder');
     this.activeItem.addClass('qing-sortable-hide');
     return this._updateDimensions();
   };
 
-  QingSortable.prototype._nearPlaceholder = function(mouse, nearDimension) {
+  QingSortable.prototype._placeholderDistance = function(mouse, delta) {
     var d;
-    if (this.placeholder) {
-      d = QingSortable.getElementDimension(this.placeholder);
-      return QingSortable.pointToDimension(mouse, d) < nearDimension.delta;
+    if (!this.placeholder) {
+      return 2e308;
     }
+    d = QingSortable.getElementDimension(this.placeholder);
+    return QingSortable.pointToDimension(mouse, d);
   };
 
   QingSortable.prototype._onDragEnd = function() {
@@ -171,7 +177,6 @@ QingSortable = (function(superClass) {
     this.helper = null;
     this.activeItem = null;
     this.placeholder = null;
-    this.nearDimension = null;
     return this._lastDrag = null;
   };
 
@@ -187,7 +192,6 @@ QingSortable = (function(superClass) {
       ref1.remove();
     }
     this.placeholder = null;
-    this.nearDimension = null;
     return this._lastDrag = null;
   };
 
@@ -213,8 +217,8 @@ QingSortable = (function(superClass) {
     return this.placeholder = $item.clone().addClass('qing-sortable-placeholder');
   };
 
-  QingSortable.prototype._findNearItemDimension = function(x, y) {
-    var nearest;
+  QingSortable.prototype._findNearest = function(x, y) {
+    var group, nearest;
     nearest = function(dimensions) {
       return dimensions.map(function(d) {
         d.delta = QingSortable.pointToDimension([x, y], d);
@@ -224,9 +228,23 @@ QingSortable = (function(superClass) {
       })[0];
     };
     if (this.opts.groups) {
-      return nearest(nearest(this.dimensions).children);
+      group = nearest(this.dimensions);
+      if (group.children && group.children.length > 0) {
+        return {
+          type: 'item',
+          dimension: nearest(group.children)
+        };
+      } else {
+        return {
+          type: 'group',
+          dimension: group
+        };
+      }
     } else {
-      return nearest(this.dimensions);
+      return {
+        type: 'item',
+        dimension: nearest(this.dimensions)
+      };
     }
   };
 
