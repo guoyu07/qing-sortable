@@ -14,7 +14,7 @@
   <style>
     *{margin:0; padding:0; box-sizing: border-box;}
     ul,ol {list-style: none;}
-    body{padding: 50px;}
+    body{padding: 200px;}
   </style>
   <style>
     ol.vertical, ol.horizontal{ padding: 10px; border: 1px solid #ddd; margin: 10px;}
@@ -22,6 +22,10 @@
     ol.horizontal::after{ content: ''; display: block; clear: both; }
     ol.horizontal > li { float: left; width: 60px; height: 60px; 
       border: 1px solid #999; padding: 8px; margin: 4px;
+    }
+    .qing-sortable-placeholder {
+      border: 1px solid red !important;
+      text-indent: -9999px;
     }
   </style>
 
@@ -41,8 +45,8 @@
     </ol>
     <script>
       new QingSortable({
-        el: '#demo1',
-        items: '.sortable1'
+        items: '.sortable1',
+        axis: 'y'
       })
     </script>
   </div>
@@ -68,8 +72,8 @@
     </ol>
     <script>
       new QingSortable({
-        el: '#demo2',
-        items: '.sortable2'
+        items: '.sortable2',
+        axis: 'x'
       })
     </script>
   </div>
@@ -99,7 +103,8 @@
       new QingSortable({
         el: '#demo3',
         groups: 'ol',
-        items: '.sortable3'
+        items: '.sortable3',
+        axis: 'y'
       })
     </script>
   </div>
@@ -129,7 +134,8 @@
       new QingSortable({
         el: '#demo4',
         groups: 'ol',
-        items: '.sortable4'
+        items: '.sortable4',
+        axis: 'x'
       })
     </script>
   </div>
