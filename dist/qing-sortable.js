@@ -6,7 +6,7 @@
  * Released under the MIT license
  * http://mycolorway.github.io/qing-sortable/license.html
  *
- * Date: 2016-10-26
+ * Date: 2016-10-30
  */
 ;(function(root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -28,14 +28,14 @@ QingSortable = (function(superClass) {
     return QingSortable.__super__.constructor.apply(this, arguments);
   }
 
+  QingSortable.id = 1;
+
   QingSortable.opts = {
     el: document,
     groups: null,
     items: null,
     plugins: []
   };
-
-  QingSortable.id = 1;
 
   QingSortable.getElementDimension = function(el) {
     var $el, height, offset, width;
@@ -55,8 +55,6 @@ QingSortable = (function(superClass) {
       element: el
     };
   };
-
-  QingSortable.excluded = '[data-qing-sortable-excluded]';
 
   QingSortable.pointToDimension = function(p, d) {
     var abs, center, dx, dy, max, sqrt;
@@ -85,16 +83,13 @@ QingSortable = (function(superClass) {
 
   QingSortable.prototype._init = function() {
     this.el = $(this.opts.el);
+    this.el.addClass("qing-sortable");
     this.id = QingSortable.id++;
     return this._bind();
   };
 
   QingSortable.prototype._appendHelper = function($item) {
-    this.helper = $item.clone().addClass('qing-sortable-helper');
-    this.helper.outerWidth($item.outerWidth());
-    this.helper.outerHeight($item.outerHeight());
-    this.helper.attr('data-qing-sortable-excluded', true);
-    return this.helper.prependTo($item.parent());
+    return this.helper = $item.clone().addClass('qing-sortable-helper').outerWidth($item.outerWidth()).outerHeight($item.outerHeight()).prependTo($item.parent());
   };
 
   QingSortable.prototype._bind = function() {
@@ -106,23 +101,28 @@ QingSortable = (function(superClass) {
         $item = $(e.currentTarget);
         offset = $item.offset();
         _this._onDragStart($item);
-        return e.originalEvent.dataTransfer.setDragImage(_this.helper.get(0), e.pageX - offset.left, e.pageY - offset.top);
+        e.originalEvent.dataTransfer.setDragImage(_this.helper.get(0), e.pageX - offset.left, e.pageY - offset.top);
+        return e.stopPropagation();
       };
     })(this));
     this.el.on("dragover.qingSortable" + this.id, (function(_this) {
       return function(e) {
-        return _this._onDragOver(e.pageX, e.pageY);
+        _this._onDragOver(e.pageX, e.pageY);
+        return e.stopPropagation();
       };
     })(this));
     return this.el.on("dragend.qingSortable" + this.id, (function(_this) {
       return function(e) {
-        return _this._onDragEnd();
+        _this._onDragEnd();
+        return e.stopPropagation();
       };
     })(this));
   };
 
   QingSortable.prototype._onDragStart = function($item) {
+    this.el.addClass("qing-sortable-sorting");
     this.activeItem = $item;
+    this.trigger("sortstart", [this.activeItem]);
     this._appendHelper($item);
     this._generatePlaceholder($item);
     return this._cacheDimensions();
@@ -161,19 +161,21 @@ QingSortable = (function(superClass) {
   QingSortable.prototype._placeholderDistance = function(mouse, delta) {
     var d;
     if (!this.placeholder) {
-      return 2e308;
+      return Infinity;
     }
     d = QingSortable.getElementDimension(this.placeholder);
     return QingSortable.pointToDimension(mouse, d);
   };
 
   QingSortable.prototype._onDragEnd = function() {
+    this.el.removeClass("qing-sortable-sorting");
     if (!this.activeItem) {
       return;
     }
     this.activeItem.removeClass('qing-sortable-placeholder qing-sortable-hide');
     this.placeholder.replaceWith(this.activeItem);
     this.helper.remove();
+    this.trigger("sortend", [this.activeItem]);
     this.helper = null;
     this.activeItem = null;
     this.placeholder = null;
@@ -182,7 +184,7 @@ QingSortable = (function(superClass) {
 
   QingSortable.prototype.destroy = function() {
     var ref, ref1;
-    this.el.off(".qingSortable" + this.id);
+    this.el.removeClass('qing-sortable').off(".qingSortable" + this.id);
     if ((ref = this.helper) != null) {
       ref.remove();
     }
@@ -252,7 +254,7 @@ QingSortable = (function(superClass) {
     var collectItemDimensions;
     collectItemDimensions = (function(_this) {
       return function($el) {
-        return $el.find(_this.opts.items).not(QingSortable.excluded).map(function(index, item) {
+        return $el.find(_this.opts.items).not('.qing-sortable-helper').map(function(index, item) {
           return QingSortable.getElementDimension(item);
         }).get();
       };

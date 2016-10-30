@@ -1,10 +1,12 @@
 class QingSortable extends QingModule
+  @id: 1
+
   @opts:
     el: document
     groups: null
     items: null
     plugins: []
-  @id: 1
+
   @getElementDimension: (el)->
     $el = $(el)
     offset = $el.offset()
@@ -18,7 +20,7 @@ class QingSortable extends QingModule
       left: offset.left + height / 2
       top: offset.top + height / 2
     element: el
-  @excluded: '[data-qing-sortable-excluded]'
+
   @pointToDimension: (p, d)->
     max = Math.max
     abs = Math.abs
@@ -37,20 +39,24 @@ class QingSortable extends QingModule
     @opts = $.extend {}, QingSortable.opts, opts
     unless @opts.items
       throw new Error 'option items is required'
-  _init: ()->
+
+  _init: ->
     @el = $ @opts.el
+
+    @el.addClass "qing-sortable"
     @id = QingSortable.id++
     @_bind()
 
   _appendHelper: ($item)->
-    @helper = $item.clone().addClass('qing-sortable-helper')
-    @helper.outerWidth $item.outerWidth()
-    @helper.outerHeight $item.outerHeight()
-    @helper.attr('data-qing-sortable-excluded', true)
-    @helper.prependTo $item.parent()
+    @helper = $item.clone()
+      .addClass('qing-sortable-helper')
+      .outerWidth $item.outerWidth()
+      .outerHeight $item.outerHeight()
+      .prependTo $item.parent()
 
-  _bind: ()->
+  _bind: ->
     itemSelector = @opts.items
+
     @el.on "dragstart.qingSortable#{@id}", itemSelector, (e)=>
       $item = $ e.currentTarget
       offset = $item.offset()
@@ -60,13 +66,20 @@ class QingSortable extends QingModule
         e.pageX-offset.left,
         e.pageY-offset.top
       )
-    @el.on "dragover.qingSortable#{@id}", (e)=>
+      e.stopPropagation()
+
+    @el.on "dragover.qingSortable#{@id}", (e) =>
       @_onDragOver(e.pageX, e.pageY)
-    @el.on "dragend.qingSortable#{@id}", (e)=>
+      e.stopPropagation()
+
+    @el.on "dragend.qingSortable#{@id}", (e) =>
       @_onDragEnd()
+      e.stopPropagation()
 
   _onDragStart: ($item)->
+    @el.addClass "qing-sortable-sorting"
     @activeItem = $item
+    @trigger "sortstart", [@activeItem]
     @_appendHelper($item)
     @_generatePlaceholder($item)
     @_cacheDimensions()
@@ -95,17 +108,20 @@ class QingSortable extends QingModule
     QingSortable.pointToDimension(mouse, d)
 
   _onDragEnd: ()->
+    @el.removeClass "qing-sortable-sorting"
     return unless @activeItem
     @activeItem.removeClass 'qing-sortable-placeholder qing-sortable-hide'
     @placeholder.replaceWith @activeItem
     @helper.remove()
+    @trigger "sortend", [@activeItem]
     @helper = null
     @activeItem = null
     @placeholder = null
     @_lastDrag = null
 
   destroy: ->
-    @el.off ".qingSortable#{@id}"
+    @el.removeClass 'qing-sortable'
+      .off ".qingSortable#{@id}"
     @helper?.remove()
     @helper = null
     @activeItem = null
@@ -151,7 +167,7 @@ class QingSortable extends QingModule
 
   _cacheDimensions: ()->
     collectItemDimensions = ($el)=>
-      $el.find(@opts.items).not(QingSortable.excluded).map((index, item)=>
+      $el.find(@opts.items).not('.qing-sortable-helper').map((index, item)=>
         QingSortable.getElementDimension item
       ).get()
     @dimensions = if @opts.groups
@@ -163,7 +179,7 @@ class QingSortable extends QingModule
     else
       collectItemDimensions @el
 
-  _updateDimensions: ()->
+  _updateDimensions: ->
     # 默认 drag 过程中 items 不会增加或减少
     update = (i,index)->
       offset = $(i.element).offset()

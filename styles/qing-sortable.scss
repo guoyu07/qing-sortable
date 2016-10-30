@@ -8,13 +8,15 @@
   -webkit-user-drag: element;
   cursor: move;
 }
-.qing-sortable-helper{
-  position: absolute;
+
+.qing-sortable-helper {
+  position: absolute !important;
   top: -200%;
   left: -200%;
 }
+
 .qing-sortable-hide {
-  position: fixed;
+  position: fixed !important;
   top: 0;
   left: 200%;
 }
