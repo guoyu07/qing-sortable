@@ -6,7 +6,7 @@
  * Released under the MIT license
  * http://mycolorway.github.io/qing-sortable/license.html
  *
- * Date: 2016-10-30
+ * Date: 2016-12-6
  */
 ;(function(root, factory) {
   if (typeof module === 'object' && module.exports) {
@@ -101,6 +101,7 @@ QingSortable = (function(superClass) {
         $item = $(e.currentTarget);
         offset = $item.offset();
         _this._onDragStart($item);
+        e.originalEvent.dataTransfer.setData('text/plain', 'qing-sortable');
         e.originalEvent.dataTransfer.setDragImage(_this.helper.get(0), e.pageX - offset.left, e.pageY - offset.top);
         return e.stopPropagation();
       };
@@ -161,7 +162,7 @@ QingSortable = (function(superClass) {
   QingSortable.prototype._placeholderDistance = function(mouse, delta) {
     var d;
     if (!this.placeholder) {
-      return Infinity;
+      return 2e308;
     }
     d = QingSortable.getElementDimension(this.placeholder);
     return QingSortable.pointToDimension(mouse, d);

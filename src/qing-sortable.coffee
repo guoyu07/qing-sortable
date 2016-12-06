@@ -61,6 +61,7 @@ class QingSortable extends QingModule
       $item = $ e.currentTarget
       offset = $item.offset()
       @_onDragStart($item)
+      e.originalEvent.dataTransfer.setData 'text/plain', 'qing-sortable'
       e.originalEvent.dataTransfer.setDragImage(
         @helper.get(0),
         e.pageX-offset.left,
